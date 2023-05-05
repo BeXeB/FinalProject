@@ -6,22 +6,24 @@ public abstract class Expression
 {
     public interface Visitor<T>
     {
-        T VisitBinaryExpression(Binary expression);
+        public T VisitBinaryExpression(Binary expression);
     }
+
+    public abstract T Accept<T>(Visitor<T> visitor);
 
     public class Binary : Expression
     {
-        Binary(Expression left, Token op, Expression right)
+        public Binary(Expression left, Token op, Expression right)
         {
             this.left = left;
             this.op = op;
             this.right = right;
         }
-        T Accept(Visitor<T> visitor)
+        public override T Accept<T>(Visitor<T> visitor)
         {
             return visitor.VisitBinaryExpression(this);
         }
-
+    
         readonly Expression left;
         readonly Token op;
         readonly Expression right;
