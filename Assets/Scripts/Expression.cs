@@ -4,28 +4,120 @@ using UnityEngine;
 
 public abstract class Expression
 {
-    public interface Visitor<T>
+    public interface IExpressionVisitor<T>
     {
-        public T VisitBinaryExpression(Binary expression);
+        public T VisitBinaryExpression(BinaryExpression expression);
+        public T VisitAssignmentExpression(AssignmentExpression expression);
+        public T VisitLiteralExpression(LiteralExpression expression);
+        public T VisitGroupingExpression(GroupingExpression expression);
+        public T VisitLogicalExpression(LogicalExpression expression);
+        public T VisitVariableExpression(VariableExpression expression);
+        public T VisitUnaryExpression(UnaryExpression expression);
     }
 
-    public abstract T Accept<T>(Visitor<T> visitor);
+    public abstract T Accept<T>(IExpressionVisitor<T> visitor);
 
-    public class Binary : Expression
+    public class BinaryExpression : Expression
     {
-        public Binary(Expression left, Token op, Expression right)
+        public BinaryExpression(Expression left, Token op, Expression right)
         {
             this.left = left;
             this.op = op;
             this.right = right;
         }
-        public override T Accept<T>(Visitor<T> visitor)
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
         {
             return visitor.VisitBinaryExpression(this);
         }
     
-        readonly Expression left;
-        readonly Token op;
-        readonly Expression right;
+        public readonly Expression left;
+        public readonly Token op;
+        public readonly Expression right;
+    }
+    public class AssignmentExpression : Expression
+    {
+        public AssignmentExpression(Token name, Expression value)
+        {
+            this.name = name;
+            this.value = value;
+        }
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.VisitAssignmentExpression(this);
+        }
+
+        public readonly Token name;
+        public readonly Expression value;
+    }
+    public class LiteralExpression : Expression
+    {
+        public LiteralExpression(object value)
+        {
+            this.value = value;
+        }
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.VisitLiteralExpression(this);
+        }
+
+        public readonly object value;
+    }
+    public class GroupingExpression : Expression
+    {
+        public GroupingExpression(Expression expression)
+        {
+            this.expression = expression;
+        }
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.VisitGroupingExpression(this);
+        }
+
+        public readonly Expression expression;
+    }
+    public class LogicalExpression : Expression
+    {
+        public LogicalExpression(Expression left, Token op, Expression right)
+        {
+            this.left = left;
+            this.op = op;
+            this.right = right;
+        }
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.VisitLogicalExpression(this);
+        }
+
+        public readonly Expression left;
+        public readonly Token op;
+        public readonly Expression right;
+    }
+    public class VariableExpression : Expression
+    {
+        public VariableExpression(Token name)
+        {
+            this.name = name;
+        }
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.VisitVariableExpression(this);
+        }
+
+        public readonly Token name;
+    }
+    public class UnaryExpression : Expression
+    {
+        public UnaryExpression(Token op, Expression expression)
+        {
+            this.op = op;
+            this.expression = expression;
+        }
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.VisitUnaryExpression(this);
+        }
+
+        public readonly Token op;
+        public readonly Expression expression;
     }
 }

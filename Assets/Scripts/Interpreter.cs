@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
-public class Interpreter
+public class Interpreter : Expression.IExpressionVisitor<object>
 {
 
     string code;
@@ -28,7 +29,11 @@ public class Interpreter
         {"bool", TokenType.BOOL},
         {"while", TokenType.WHILE}
     };
-
+    //Expression Test Method
+    public void TestExpr(Expression expr)
+    {
+        var yes = Evaluate(expr);
+    }
 
     public void InterpretCode(string code)
     {
@@ -229,5 +234,149 @@ public class Interpreter
     {
         string text = code.Substring(startIndex, currentIndex-startIndex);
         tokens.Add(new Token { type = type, startIndex = startIndex, value = text });
+    }
+
+    public object VisitBinaryExpression(Expression.BinaryExpression expression)
+    {
+        object left = Evaluate(expression.left);
+        object right = Evaluate(expression.right);
+
+        switch (expression.op.type)
+        {
+            case TokenType.NOT_EQUAL: 
+                return !IsEqual(left, right);
+            case TokenType.EQUAL_EQUAL: 
+                return IsEqual(left, right);
+            case TokenType.GREATER:
+                CheckNumberOperands(left, right);
+                return Convert.ToDouble(left) > Convert.ToDouble(right);
+            case TokenType.GREATER_EQUAL:
+                CheckNumberOperands(left, right);
+                return Convert.ToDouble(left) >= Convert.ToDouble(right);
+            case TokenType.LESS:
+                CheckNumberOperands(left, right);
+                return Convert.ToDouble(left) < Convert.ToDouble(right);
+            case TokenType.LESS_EQUAL:
+                CheckNumberOperands(left, right);
+                return Convert.ToDouble(left) <= Convert.ToDouble(right);
+            case TokenType.MINUS:
+                CheckNumberOperands(left, right);
+                return Convert.ToDouble(left) - Convert.ToDouble(right);
+            case TokenType.PLUS:
+                CheckNumberOperands(left, right);
+                return Convert.ToDouble(left) + Convert.ToDouble(right);
+            case TokenType.SLASH:
+                CheckNumberOperands(left, right);
+                return Convert.ToDouble(left) / Convert.ToDouble(right);
+            case TokenType.STAR:
+                CheckNumberOperands(left, right);
+                return Convert.ToDouble(left) * Convert.ToDouble(right);
+        }
+        return null;
+    }
+
+    public object VisitAssignmentExpression(Expression.AssignmentExpression expression)
+    {
+        object value = Evaluate(expression.value);
+        /*
+        int distance = locals.get(expr);
+        if (distance != null)
+        {
+            environment.assignAt(distance, expr.name, value);
+        }
+        else
+        {
+            globals.assign(expr.name, value);
+        }*/
+
+        return value;
+    }
+
+    public object VisitLiteralExpression(Expression.LiteralExpression expression)
+    {
+        return expression.value;
+    }
+
+    public object VisitGroupingExpression(Expression.GroupingExpression expression)
+    {
+        return Evaluate(expression.expression);
+    }
+
+    public object VisitLogicalExpression(Expression.LogicalExpression expression)
+    {
+        object left = Evaluate(expression.left);
+
+        if (expression.op.type == TokenType.OR) {
+            if (IsTruthy(left)) return left;
+        } 
+        else
+        {
+            if (!IsTruthy(left)) return left;
+        }
+
+        return Evaluate(expression.right);
+    }
+
+    public object VisitVariableExpression(Expression.VariableExpression expression)
+    {
+        return LookUpVariable(expression.name, expression);
+    }
+
+    public object VisitUnaryExpression(Expression.UnaryExpression expression)
+    {
+        object right = Evaluate(expression.expression);
+
+        switch (expression.op.type) 
+        {
+            case TokenType.NOT:
+                return !IsTruthy(right);
+            case TokenType.MINUS:
+                CheckNumberOperand(right);
+                return -Convert.ToDouble(right);
+        }
+        return null;
+    }
+
+    private void CheckNumberOperand(object operand)
+    {
+        if (operand is double) return;
+        //throw new RuntimeError(operator, "Operand must be a number.");
+    }
+    private void CheckNumberOperands(object left, object right)
+    {
+        if (left is double && right is double) return;
+        //throw new RuntimeError(operator, "Operands must be numbers.");
+    }
+    private bool IsEqual(object a, object b)
+    {
+        if (a == null && b == null) return true;
+        if (a == null) return false;
+
+        return a.Equals(b);
+    }
+    private object Evaluate(Expression expr)
+    {
+        return expr.Accept(this);
+    }
+
+    private bool IsTruthy(object obj)
+    {
+        if (obj == null) return false;
+        if (obj is bool) return Convert.ToBoolean(obj);
+        return true;
+    }
+
+    private object LookUpVariable(Token name, Expression expr)
+    {
+        /*int distance = locals.get(expr);
+        if (distance != null)
+        {
+            return environment.getAt(distance, name.lexeme);
+        }
+        else
+        {
+            return globals.get(name);
+        }*/
+        return null;
     }
 }
