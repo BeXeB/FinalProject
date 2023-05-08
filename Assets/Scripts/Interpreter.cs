@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Globalization;
 
 public class Interpreter : Expression.IExpressionVisitor<object>
 {
@@ -9,6 +10,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>
     string code;
     string processedCode = "";
 
+    int line = 1;
     int startIndex = 0;
     int currentIndex = 0;
 
@@ -35,17 +37,17 @@ public class Interpreter : Expression.IExpressionVisitor<object>
         var yes = Evaluate(expr);
     }
 
-    public void InterpretCode(string code)
+    public List<Token> InterpretCode(string code)
     {
         if (code == null)
         {
             code = "";
         }
 
-        Lexer(code);
+        return Lexer(code);
     }
 
-    void Lexer(string rawCode)
+    public List<Token> Lexer(string rawCode)
     {
         code = rawCode.ToLower();
         while(currentIndex < code.Length)
@@ -54,6 +56,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>
             ScanToken();
         }
         AddToken(TokenType.EOF);
+        return tokens;
     }
 
     private void ScanToken()
@@ -138,7 +141,9 @@ public class Interpreter : Expression.IExpressionVisitor<object>
             case ' ':
             case '\r':
             case '\t':
+                break;
             case '\n':
+                line++;
                 break;
             default:
                 if (char.IsDigit(c))
@@ -233,7 +238,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>
     private void AddToken(TokenType type)
     {
         string text = code.Substring(startIndex, currentIndex-startIndex);
-        tokens.Add(new Token { type = type, startIndex = startIndex, value = text });
+        tokens.Add(new Token { type = type, line = line, startIndex = startIndex, value = text });
     }
 
     public object VisitBinaryExpression(Expression.BinaryExpression expression)
@@ -243,34 +248,37 @@ public class Interpreter : Expression.IExpressionVisitor<object>
 
         switch (expression.op.type)
         {
-            case TokenType.NOT_EQUAL: 
+            case TokenType.NOT_EQUAL:
                 return !IsEqual(left, right);
             case TokenType.EQUAL_EQUAL: 
                 return IsEqual(left, right);
             case TokenType.GREATER:
                 CheckNumberOperands(left, right);
-                return Convert.ToDouble(left) > Convert.ToDouble(right);
+                return Convert.ToDouble(left, CultureInfo.InvariantCulture) > Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.GREATER_EQUAL:
                 CheckNumberOperands(left, right);
-                return Convert.ToDouble(left) >= Convert.ToDouble(right);
+                return Convert.ToDouble(left, CultureInfo.InvariantCulture) >= Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.LESS:
                 CheckNumberOperands(left, right);
-                return Convert.ToDouble(left) < Convert.ToDouble(right);
+                return Convert.ToDouble(left, CultureInfo.InvariantCulture) < Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.LESS_EQUAL:
                 CheckNumberOperands(left, right);
-                return Convert.ToDouble(left) <= Convert.ToDouble(right);
+                return Convert.ToDouble(left, CultureInfo.InvariantCulture) <= Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.MINUS:
                 CheckNumberOperands(left, right);
-                return Convert.ToDouble(left) - Convert.ToDouble(right);
+                return Convert.ToDouble(left, CultureInfo.InvariantCulture) - Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.PLUS:
                 CheckNumberOperands(left, right);
-                return Convert.ToDouble(left) + Convert.ToDouble(right);
+                return Convert.ToDouble(left, CultureInfo.InvariantCulture) + Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.SLASH:
                 CheckNumberOperands(left, right);
-                return Convert.ToDouble(left) / Convert.ToDouble(right);
+                return Convert.ToDouble(left, CultureInfo.InvariantCulture) / Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.STAR:
                 CheckNumberOperands(left, right);
-                return Convert.ToDouble(left) * Convert.ToDouble(right);
+                return Convert.ToDouble(left, CultureInfo.InvariantCulture) * Convert.ToDouble(right, CultureInfo.InvariantCulture);
+            case TokenType.MOD:
+                CheckNumberOperands(left, right);
+                return Convert.ToDouble(left, CultureInfo.InvariantCulture) % Convert.ToDouble(right, CultureInfo.InvariantCulture);
         }
         return null;
     }

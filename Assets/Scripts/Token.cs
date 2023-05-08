@@ -1,6 +1,7 @@
 public struct Token
 {
     public TokenType type;
+    public int line;
     public int startIndex;
     public string value;
 }
