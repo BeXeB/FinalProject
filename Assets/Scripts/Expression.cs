@@ -7,6 +7,7 @@ public abstract class Expression
     public interface IExpressionVisitor<T>
     {
         public T VisitBinaryExpression(BinaryExpression expression);
+        public T VisitCallExpression(CallExpression expression);
         public T VisitAssignmentExpression(AssignmentExpression expression);
         public T VisitLiteralExpression(LiteralExpression expression);
         public T VisitGroupingExpression(GroupingExpression expression);
@@ -33,6 +34,23 @@ public abstract class Expression
         public readonly Expression left;
         public readonly Token op;
         public readonly Expression right;
+    }
+    public class CallExpression : Expression
+    {
+        public CallExpression(Expression callee, Token paren, List<Expression> arguments)
+        {
+            this.callee = callee;
+            this.paren = paren;
+            this.arguments = arguments;
+        }
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.VisitCallExpression(this);
+        }
+
+        public readonly Expression callee;
+        public readonly Token paren;
+        public readonly List<Expression> arguments;
     }
     public class AssignmentExpression : Expression
     {

@@ -6,30 +6,157 @@ public class Parser
 {
     private class ParseError : System.Exception { }
 
-    private GameManager gameManager;
     private readonly List<Token> tokens;
     private int current = 0;
     public Parser(List<Token> tokens)
     {
         this.tokens = tokens;
-        gameManager = GameManager.instance;
     }
 
-    public Expression Parse()
+    public List<Statement> Parse()
+    {
+        List<Statement> statements = new List<Statement>();
+        while (!IsAtEnd())
+        {
+            statements.Add(Declaration());
+        }
+        return statements;
+    }
+
+    private Statement Declaration() 
     {
         try
         {
-            return Expr();
+            if (Match(TokenType.INT)) return VariableDeclaration(TokenType.INT);
+            if (Match(TokenType.FLOAT)) return VariableDeclaration(TokenType.FLOAT);
+            if (Match(TokenType.BOOL)) return VariableDeclaration(TokenType.BOOL);
+            return Statement();
         }
         catch (ParseError error)
         {
+            Synchronize();
             return null;
         }
     }
 
+    private Statement VariableDeclaration(TokenType type)
+    {
+        Token name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
+        Expression initializer = null;
+        if (Match(TokenType.EQUAL))
+        {
+            initializer = Expr();
+        }
+        Consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+        switch (type)
+        {
+            case TokenType.INT:
+                return new Statement.IntStatement(name, initializer);
+            case TokenType.FLOAT:
+                return new Statement.FloatStatement(name, initializer);
+            case TokenType.BOOL:
+                return new Statement.BoolStatement(name, initializer);
+            default:
+                return null;
+        }
+    }
+
+
+    private Statement Statement()
+    {
+        if (Match(TokenType.IF)) return IfStatement();
+        if (Match(TokenType.RETURN)) return ReturnStatement();
+        if (Match(TokenType.WHILE)) return WhileStatement();
+        if (Match(TokenType.LEFT_BRACE)) return new Statement.BlockStatement(Block());
+
+        return ExpressionStatement();
+    }
+
+    private Statement IfStatement()
+    {
+        Consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
+        Expression condition = Expr();
+        Consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+        Statement thenBranch = Statement();
+        Statement elseBranch = null;
+        if (Match(TokenType.ELSE))
+        {
+            elseBranch = Statement();
+        }
+        return new Statement.IfStatement(condition, thenBranch, elseBranch);
+    }
+
+    private Statement ExpressionStatement()
+    {
+        Expression expression = Expr();
+        Consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+        return new Statement.ExpressionStatement(expression);
+    }
+
+    private Statement WhileStatement()
+    {
+        Consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+        Expression condition = Expr();
+        Consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+        Statement body = Statement();
+        return new Statement.WhileStatement(condition, body);
+    }
+
+    private List<Statement> Block()
+    {
+        List<Statement> statements = new List<Statement>();
+        while (!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
+        {
+            statements.Add(Declaration());
+        }
+        Consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
+    }
+
     private Expression Expr()
     {
-        return Equality();
+        return Assignment();
+    }
+
+    private Expression Assignment()
+    {
+        Expression expression = Or();
+        if (Match(TokenType.EQUAL))
+        {
+            Token equals = Previous();
+            Expression value = Assignment();
+            if (expression is Expression.VariableExpression) 
+            {
+                Token name = ((Expression.VariableExpression)expression).name;
+                return new Expression.AssignmentExpression(name, value);
+            }
+            Error(equals, "Invalid assignment target.");
+        }
+        return expression;
+    }
+
+    private Expression Or()
+    {
+        Expression expression = And();
+        while (Match(TokenType.OR))
+        {
+            Token op = Previous();
+            Expression right = And();
+            expression = new Expression.LogicalExpression(expression, op, right);
+        }
+        return expression;
+    }
+
+    private Expression And()
+    {
+        Expression expr = Equality();
+        while (Match(TokenType.AND))
+        {
+            Token op = Previous();
+            Expression right = Equality();
+            expr = new Expression.LogicalExpression(expr, op, right);
+        }
+        return expr;
     }
 
     private Expression Equality()
@@ -88,7 +215,40 @@ public class Parser
             Expression right = Unary();
             return new Expression.UnaryExpression(op, right);
         }
-        return Primary();
+        return Call();
+    }
+
+    private Expression Call()
+    {
+        Expression expression = Primary();
+
+        while (true)
+        {
+            if (Match(TokenType.LEFT_PAREN))
+            {
+                expression = FinishCall(expression);
+            }
+            else break;
+        }
+        return expression;
+    }
+
+    private Expression FinishCall(Expression callee)
+    {
+        List<Expression> arguments = new List<Expression>();
+        if (!Check(TokenType.RIGHT_PAREN))
+        {
+            do
+            {
+                if (arguments.Count >= 255)
+                {
+                    Error(Peek(), "Can't have more than 255 arguments.");
+                }
+                arguments.Add(Expr());
+            } while (Match(TokenType.COMMA));
+        }
+        Token paren = Consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.");
+        return new Expression.CallExpression(callee, paren, arguments);
     }
 
     private Expression Primary()
@@ -104,6 +264,10 @@ public class Parser
         if (Match(TokenType.NUMBER))
         {
             return new Expression.LiteralExpression(Previous().value);
+        }
+        if (Match(TokenType.IDENTIFIER))
+        {
+            return new Expression.VariableExpression(Previous());
         }
         if (Match(TokenType.LEFT_PAREN))
         {
@@ -172,11 +336,11 @@ public class Parser
 
     private ParseError Error(Token token, string message)
     {
-        gameManager.Error(token, message);
+        GameManager.Error(token, message);
         return new ParseError();
     }
 
-    private void Syncronize()
+    private void Synchronize()
     {
         Advance();
         while (!IsAtEnd())

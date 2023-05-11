@@ -11,9 +11,13 @@ public class GameManager : MonoBehaviour
     private TMP_Text text;
     Interpreter interpreter;
     Parser parser;
+    Lexer lexer;
+    static bool hadRuntimeError = false;
+    static bool hadError = false;
+
     Expression expression = new Expression.BinaryExpression(
         new Expression.LiteralExpression(5), 
-        new Token {type = TokenType.PLUS, startIndex=1, value = "+"}, //Test with % !!!!!!!
+        new Token {type = TokenType.PLUS, startIndex=1, value = "+"},
         new Expression.GroupingExpression(new Expression.BinaryExpression(
             new Expression.LiteralExpression(3), 
             new Token {type = TokenType.STAR, startIndex = 3, value = "*" },
@@ -30,11 +34,12 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         interpreter = new Interpreter();
-        var tokens = interpreter.InterpretCode(text.text);
+        lexer = new Lexer();
+        var tokens = lexer.ScanCode(text.text);
         //interpreter.TestExpr(expression);
         parser = new Parser(tokens);
         var expr = parser.Parse();
-        interpreter.TestExpr(expr);
+        interpreter.InterpretCode(expr);
     }
 
     // Update is called once per frame
@@ -43,7 +48,7 @@ public class GameManager : MonoBehaviour
         
     }
 
-    public void Error(Token token, string message)
+    public static void Error(Token token, string message)
     {
         if (token.type == TokenType.EOF)
         {
@@ -59,5 +64,13 @@ public class GameManager : MonoBehaviour
     {
         //TODO: print to text field in UI
         //System.err.println("[line " + line + "] Error" + where + ": " + message);
+        hadError = true;
+    }
+
+    public static void RuntimeError(RuntimeError error)
+    {
+        //TODO: print to text field in UI
+        //System.err.println(error.getMessage() + "\n[line " + error.token.line + "]");
+        hadRuntimeError = true;
     }
 }
