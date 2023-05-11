@@ -9,16 +9,11 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     static readonly Environment globals = new Environment();
     private Environment environment = globals;
 
-    /*Interpreter()
+    public Interpreter()
     {
         globals.Define("clock", 
-        new ICallable(){override public int Arity() { return 0; }
-        override public object Call(Interpreter interpreter, List<object> arguments)
-        {
-            return (double)System.currentTimeMillis() / 1000.0;
-        }
-        public string toString() { return "<native fn>"; }});
-    }*/
+        new Clock());
+    }
 
     //Expression Test Method
     public void TestExpr(Expression expr)
@@ -122,11 +117,12 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         {
             arguments.Add(Evaluate(argument));
         }
-        if (!(callee is ICallable))
+
+        if (callee is not ICallable function)
         {
-            throw new RuntimeError(expression.paren, "Can only call functions and classes.");
+            throw new RuntimeError(expression.paren, "Can only call functions.");
         }
-        ICallable function = (ICallable)callee;
+
         if (arguments.Count != function.Arity())
         {
             throw new RuntimeError(expression.paren, "Expected " + function.Arity() + " arguments but got " + arguments.Count + ".");
