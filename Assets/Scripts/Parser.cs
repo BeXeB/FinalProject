@@ -27,6 +27,7 @@ public class Parser
     {
         try
         {
+            if (Match(TokenType.FUNC)) return Function();
             if (Match(TokenType.INT)) return VariableDeclaration(TokenType.INT);
             if (Match(TokenType.FLOAT)) return VariableDeclaration(TokenType.FLOAT);
             if (Match(TokenType.BOOL)) return VariableDeclaration(TokenType.BOOL);
@@ -37,6 +38,29 @@ public class Parser
             Synchronize();
             return null;
         }
+    }
+
+    private Statement.FunctionStatement Function()
+    {
+        Token name = Consume(TokenType.IDENTIFIER, "Expect function name.");
+        Consume(TokenType.LEFT_PAREN, "Expect '(' after function name.");
+        List<Token> parameters = new List<Token>();
+        if (!Check(TokenType.RIGHT_PAREN))
+        {
+            do
+            {
+                if (parameters.Count >= 255)
+                {
+                    Error(Peek(), "Can't have more than 255 parameters.");
+                }
+                parameters.Add(
+                Consume(TokenType.IDENTIFIER, "Expect parameter name."));
+            } while (Match(TokenType.COMMA));
+        }
+        Consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+        Consume(TokenType.LEFT_BRACE, "Expect '{' before function body.");
+        List<Statement> body = Block();
+        return new Statement.FunctionStatement(name, parameters, body);
     }
 
     private Statement VariableDeclaration(TokenType type)
@@ -84,6 +108,18 @@ public class Parser
             elseBranch = Statement();
         }
         return new Statement.IfStatement(condition, thenBranch, elseBranch);
+    }
+
+    private Statement ReturnStatement()
+    {
+        Token keyword = Previous();
+        Expression value = null;
+        if (!Check(TokenType.SEMICOLON))
+        {
+            value = Expr();
+        }
+        Consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+        return new Statement.ReturnStatement(keyword, value);
     }
 
     private Statement ExpressionStatement()

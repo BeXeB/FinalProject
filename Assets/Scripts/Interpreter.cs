@@ -6,7 +6,7 @@ using System.Globalization;
 
 public class Interpreter : Expression.IExpressionVisitor<object>, Statement.IStatementVisitor<object>
 {
-    static readonly Environment globals = new Environment();
+    public static readonly Environment globals = new Environment();
     private Environment environment = globals;
 
     public Interpreter()
@@ -50,7 +50,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         statement.Accept(this);
     }    
 
-    private void ExecuteBlock(List<Statement> statements, Environment environment)
+    public void ExecuteBlock(List<Statement> statements, Environment environment)
     {
         Environment previous = this.environment;
         try
@@ -251,7 +251,9 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
 
     public object VisitFunctionStatement(Statement.FunctionStatement statement)
     {
-        throw new NotImplementedException();
+        Function function = new Function(statement, environment);
+        environment.Define(statement.name.value, function);
+        return null;
     }
 
     public object VisitIfStatement(Statement.IfStatement statement)
@@ -269,7 +271,9 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
 
     public object VisitReturnStatement(Statement.ReturnStatement statement)
     {
-        throw new NotImplementedException();
+        object value = null;
+        if (statement.value != null) value = Evaluate(statement.value);
+        throw new Return(value);
     }
 
     public object VisitBreakStatement(Statement.BreakStatement statement)
