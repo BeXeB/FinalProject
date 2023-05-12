@@ -6,21 +6,15 @@ using System.Globalization;
 
 public class Interpreter : Expression.IExpressionVisitor<object>, Statement.IStatementVisitor<object>
 {
-    public readonly Environment globals = new Environment();
+    private readonly Environment globals = new();
     private Environment environment;
     private readonly Dictionary<Expression, int> locals = new();
 
     public Interpreter()
     {
-        environment = globals;
         globals.Define("clock", 
         new Clock());
-    }
-
-    //Expression Test Method
-    public void TestExpr(Expression expr)
-    {
-        var yes = Evaluate(expr);
+        environment = globals;
     }
 
     public void InterpretCode(List<Statement> statements)
@@ -37,15 +31,6 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
             GameManager.RuntimeError(error);
         }
     }
-    /*public List<Token> InterpretCode(string code)
-    {
-        if (code == null)
-        {
-            code = "";
-        }
-
-        return Lexer(code);
-    }*/
 
     private void Execute(Statement statement)
     {

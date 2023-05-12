@@ -200,7 +200,7 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         {
             if (scopes.ToArray()[i].ContainsKey(name.value))
             {
-                interpreter.Resolve(expr, scopes.Count - 1 - i);
+                interpreter.Resolve(expr, i);
                 return;
             }
         }

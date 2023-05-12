@@ -644,8 +644,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "{\nint a = 5;\r\nbool b = false;\r\nfloat c = 2.3;\r\nwhile(c<a)\r\n{\r\n\tc
-    = c * 2;\r\n}\n}\n"
+  m_text: "{\nint a = 5;\r\nbool b = false;\r\nfloat c = 2.3;\r\nif(true)\n{\nif(c<a)\r\n{\r\n\tc
+    = c * 2;\r\n}\n}\n}\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
