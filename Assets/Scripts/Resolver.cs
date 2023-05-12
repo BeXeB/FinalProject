@@ -166,7 +166,9 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
 
     public object VisitVariableExpression(Expression.VariableExpression expression)
     {
-        if (scopes.Count != 0 && scopes.Peek()[expression.name.value] == false)
+        if (scopes.TryPeek(out Dictionary<string, bool> scope) &&
+            scope.TryGetValue(expression.name.value, out bool value)
+            && value == false)
         {
             GameManager.Error(expression.name, "Can't read local variable in its own initializer.");
         }
@@ -247,7 +249,7 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         {
             return;
         }
-        scopes.Peek().Add(name.value, true);
+        scopes.Peek()[name.value] = true;
     }
 
     

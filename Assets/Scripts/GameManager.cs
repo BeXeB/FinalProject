@@ -15,14 +15,7 @@ public class GameManager : MonoBehaviour
     Resolver resolver;
     static bool hadRuntimeError = false;
     static bool hadError = false;
-
-    Expression expression = new Expression.BinaryExpression(
-        new Expression.LiteralExpression(5), 
-        new Token {type = TokenType.PLUS, startIndex=1, value = "+"},
-        new Expression.GroupingExpression(new Expression.BinaryExpression(
-            new Expression.LiteralExpression(3), 
-            new Token {type = TokenType.STAR, startIndex = 3, value = "*" },
-            new Expression.LiteralExpression(2))));
+    
     private void Awake()
     {
         if (instance == null)

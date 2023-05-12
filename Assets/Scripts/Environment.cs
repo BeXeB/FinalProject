@@ -5,7 +5,7 @@ using UnityEngine;
 public class Environment
 {
     readonly Environment enclosing;
-    private readonly Dictionary<string, object> values = new Dictionary<string, object>();
+    private readonly Dictionary<string, object> values = new();
 
     public Environment()
     {
@@ -39,7 +39,7 @@ public class Environment
 
     public void AssignAt(int distance, Token name, object value)
     {
-        Ancestor(distance).values.Add(name.value, value);
+        Ancestor(distance).values[name.value] = value;
     }
 
     public void Define(string name, object value)
@@ -51,7 +51,7 @@ public class Environment
     {
         if (values.ContainsKey(name.value))
         {
-            values.Add(name.value, value);
+            values[name.value] = value;
             return;
         }
         if (enclosing != null)
