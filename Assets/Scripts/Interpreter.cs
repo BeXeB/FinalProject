@@ -6,12 +6,13 @@ using System.Globalization;
 
 public class Interpreter : Expression.IExpressionVisitor<object>, Statement.IStatementVisitor<object>
 {
-    public static readonly Environment globals = new Environment();
-    private Environment environment = globals;
+    public readonly Environment globals = new Environment();
+    private Environment environment;
     private readonly Dictionary<Expression, int> locals = new();
 
     public Interpreter()
     {
+        environment = globals;
         globals.Define("clock", 
         new Clock());
     }
