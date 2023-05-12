@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     Interpreter interpreter;
     Parser parser;
     Lexer lexer;
+    Resolver resolver;
     static bool hadRuntimeError = false;
     static bool hadError = false;
 
@@ -38,8 +39,14 @@ public class GameManager : MonoBehaviour
         var tokens = lexer.ScanCode(text.text);
         //interpreter.TestExpr(expression);
         parser = new Parser(tokens);
-        var expr = parser.Parse();
-        interpreter.InterpretCode(expr);
+        var statements = parser.Parse();
+        resolver = new Resolver(interpreter);
+        resolver.Resolve(statements);
+        if (hadError)
+        {
+            return;
+        }
+        interpreter.InterpretCode(statements);
     }
 
     // Update is called once per frame

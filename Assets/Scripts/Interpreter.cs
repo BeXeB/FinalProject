@@ -8,6 +8,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
 {
     public static readonly Environment globals = new Environment();
     private Environment environment = globals;
+    private readonly Dictionary<Expression, int> locals = new();
 
     public Interpreter()
     {
@@ -65,6 +66,11 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         {
             this.environment = previous;
         }
+    }
+
+    public void Resolve(Expression expression, int depth)
+    {
+        locals.Add(expression, depth);
     }
 
     public object VisitBinaryExpression(Expression.BinaryExpression expression)
@@ -133,16 +139,15 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     public object VisitAssignmentExpression(Expression.AssignmentExpression expression)
     {
         object value = Evaluate(expression.value);
-        /*
-        int distance = locals.get(expr);
-        if (distance != null)
+
+        if (locals.TryGetValue(expression, out int distance))
         {
-            environment.assignAt(distance, expr.name, value);
+            environment.AssignAt(distance, expression.name, value);
         }
         else
         {
-            globals.assign(expr.name, value);
-        }*/
+            globals.Assign(expression.name, value);
+        }
         environment.Assign(expression.name, value);
         return value;
     }
@@ -175,8 +180,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
 
     public object VisitVariableExpression(Expression.VariableExpression expression)
     {
-        //return LookUpVariable(expression.name, expression);
-        return environment.Get(expression.name);
+        return LookUpVariable(expression.name, expression);
     }
 
     public object VisitUnaryExpression(Expression.UnaryExpression expression)
@@ -223,19 +227,17 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         return true;
     }
 
-    /*private object LookUpVariable(Token name, Expression expr)
+    private object LookUpVariable(Token name, Expression expression)
     {
-        int distance = locals.get(expr);
-        if (distance != null)
+        if (locals.TryGetValue(expression, out int distance))
         {
-            return environment.getAt(distance, name.lexeme);
+            return environment.GetAt(distance, name.value);
         }
         else
         {
-            return globals.get(name);
+            return globals.Get(name);
         }
-        return null;
-    }*/
+    }
 
     public object VisitBlockStatement(Statement.BlockStatement statement)
     {

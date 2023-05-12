@@ -30,6 +30,18 @@ public class Environment
         throw new RuntimeError(name, "Undefined variable '" + name.value + "'.");
     }
 
+    public object GetAt(int distance, string name)
+    {
+        object type;
+        Ancestor(distance).values.TryGetValue(name, out type);
+        return type;
+    }
+
+    public void AssignAt(int distance, Token name, object value)
+    {
+        Ancestor(distance).values.Add(name.value, value);
+    }
+
     public void Define(string name, object value)
     {
         values.Add(name, value);
@@ -48,5 +60,15 @@ public class Environment
             return;
         }
         throw new RuntimeError(name, "Undefined variable '" + name.value + "'.");
+    }
+
+    Environment Ancestor(int distance)
+    {
+        Environment environment = this;
+        for (int i = 0; i < distance; i++)
+        {
+            environment = environment.enclosing;
+        }
+        return environment;
     }
 }
