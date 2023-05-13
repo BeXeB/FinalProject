@@ -644,8 +644,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "int a = 5;\nfloat c = 3;\nwhile(a<6)\n{\n    a = inc(a);\n}\nfunction
-    inc2(b)\n{\n    return b+1;\n}\nfunction inc(a)\n{\n    return inc2(a);\n}"
+  m_text: 'float c = 2.3;
+
+    c = c*2;'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

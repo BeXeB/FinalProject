@@ -70,31 +70,31 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
                 return IsEqual(left, right);
             case TokenType.GREATER:
                 CheckNumberOperands(left, right, expression.op);
-                return Convert.ToDouble(left, CultureInfo.InvariantCulture) > Convert.ToDouble(right, CultureInfo.InvariantCulture);
+                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) > Convert.ToDecimal(right, CultureInfo.InvariantCulture);
             case TokenType.GREATER_EQUAL:
                 CheckNumberOperands(left, right, expression.op);
-                return Convert.ToDouble(left, CultureInfo.InvariantCulture) >= Convert.ToDouble(right, CultureInfo.InvariantCulture);
+                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) >= Convert.ToDecimal(right, CultureInfo.InvariantCulture);
             case TokenType.LESS:
                 CheckNumberOperands(left, right, expression.op);
-                return Convert.ToDouble(left, CultureInfo.InvariantCulture) < Convert.ToDouble(right, CultureInfo.InvariantCulture);
+                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) < Convert.ToDecimal(right, CultureInfo.InvariantCulture);
             case TokenType.LESS_EQUAL:
                 CheckNumberOperands(left, right, expression.op);
-                return Convert.ToDouble(left, CultureInfo.InvariantCulture) <= Convert.ToDouble(right, CultureInfo.InvariantCulture);
+                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) <= Convert.ToDecimal(right, CultureInfo.InvariantCulture);
             case TokenType.MINUS:
                 CheckNumberOperands(left, right, expression.op);
-                return Convert.ToDouble(left, CultureInfo.InvariantCulture) - Convert.ToDouble(right, CultureInfo.InvariantCulture);
+                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) - Convert.ToDecimal(right, CultureInfo.InvariantCulture);
             case TokenType.PLUS:
                 CheckNumberOperands(left, right, expression.op);
-                return Convert.ToDouble(left, CultureInfo.InvariantCulture) + Convert.ToDouble(right, CultureInfo.InvariantCulture);
+                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) + Convert.ToDecimal(right, CultureInfo.InvariantCulture);
             case TokenType.SLASH:
                 CheckNumberOperands(left, right, expression.op);
-                return Convert.ToDouble(left, CultureInfo.InvariantCulture) / Convert.ToDouble(right, CultureInfo.InvariantCulture);
+                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) / Convert.ToDecimal(right, CultureInfo.InvariantCulture);
             case TokenType.STAR:
                 CheckNumberOperands(left, right, expression.op);
-                return Convert.ToDouble(left, CultureInfo.InvariantCulture) * Convert.ToDouble(right, CultureInfo.InvariantCulture);
+                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) * Convert.ToDecimal(right, CultureInfo.InvariantCulture);
             case TokenType.MOD:
                 CheckNumberOperands(left, right, expression.op);
-                return Convert.ToDouble(left, CultureInfo.InvariantCulture) % Convert.ToDouble(right, CultureInfo.InvariantCulture);
+                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) % Convert.ToDecimal(right, CultureInfo.InvariantCulture);
         }
         return null;
     }
@@ -177,19 +177,19 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
                 return !IsTruthy(right);
             case TokenType.MINUS:
                 CheckNumberOperand(right, expression.op);
-                return -Convert.ToDouble(right);
+                return -Convert.ToDecimal(right);
         }
         return null;
     }
 
     private void CheckNumberOperand(object operand, Token op)
     {
-        if (operand is double) return;
+        if (operand is decimal) return;
         throw new RuntimeError(op, "Operand must be a number.");
     }
     private void CheckNumberOperands(object left, object right,Token op)
     {
-        if (left is double && right is double) return;
+        if (left is decimal && right is decimal) return;
         throw new RuntimeError(op, "Operands must be numbers.");
     }
     private bool IsEqual(object a, object b)
@@ -279,7 +279,11 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         {
             value = Evaluate(statement.initializer);
         }
-        environment.Define(statement.name.textValue, value);
+        if (!int.TryParse(value?.ToString(), out int intValue))
+        {
+            throw new RuntimeError(statement.name, "Initializer must be an integer.");
+        }
+        environment.Define(statement.name.textValue, intValue);
         return null;
     }
 
@@ -289,6 +293,10 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         if (statement.initializer != null)
         {
             value = Evaluate(statement.initializer);
+        }
+        if (value is not decimal)
+        {
+            throw new RuntimeError(statement.name, "Initializer must be a floating point number.");
         }
         environment.Define(statement.name.textValue, value);
         return null;
@@ -300,6 +308,10 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         if (statement.initializer != null)
         {
             value = Evaluate(statement.initializer);
+        }
+        if (value is not bool)
+        {
+            throw new RuntimeError(statement.name, "Initializer must be a boolean.");
         }
         environment.Define(statement.name.textValue, value);
         return null;

@@ -17,7 +17,7 @@ public class Clock : ICallable
 
     public object Call(Interpreter interpreter, List<object> arguments)
     {
-        return (double)System.DateTime.Now.Ticks / System.TimeSpan.TicksPerSecond;
+        return (decimal)System.DateTime.Now.Ticks / System.TimeSpan.TicksPerSecond;
     }
 
     public override string ToString()

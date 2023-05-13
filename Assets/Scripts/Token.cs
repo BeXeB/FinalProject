@@ -5,6 +5,7 @@ public struct Token
     public int startIndex;
     public object literal;
     public string textValue;
+    public TokenType seeMMType;
 }
 public enum TokenType
 {

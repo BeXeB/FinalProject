@@ -10,7 +10,8 @@ public class Lexer
     int currentIndex = 0;
     string code;
 
-    List<Token> tokens = new List<Token>();
+    List<Token> tokens = new();
+    private Dictionary<string, TokenType> identifiers = new ();
 
     static Dictionary<string, TokenType> keyWords = new Dictionary<string, TokenType>()
     {
@@ -198,7 +199,7 @@ public class Lexer
             }
         }
         AddToken(TokenType.NUMBER, 
-            Convert.ToDouble(
+            Convert.ToDecimal(
                 code.Substring(startIndex, currentIndex - startIndex), 
                 System.Globalization.CultureInfo.InvariantCulture));
     }
@@ -222,6 +223,20 @@ public class Lexer
     private void AddToken(TokenType type, object literal = null)
     {
         string text = code.Substring(startIndex, currentIndex - startIndex);
-        tokens.Add(new Token { type = type, line = line, startIndex = startIndex, textValue = text, literal = literal });
+        var token = new Token { type = type, line = line, startIndex = startIndex, textValue = text, literal = literal };
+        if (token.type == TokenType.IDENTIFIER)
+        {
+            if (!identifiers.ContainsKey(token.textValue))
+            {
+                var seeMMType = tokens[^1].type;
+                identifiers.Add(token.textValue, seeMMType);
+                token.seeMMType = seeMMType;
+            }
+            else
+            {
+                token.seeMMType = identifiers[token.textValue];
+            }
+        }
+        tokens.Add(token);
     }
 }

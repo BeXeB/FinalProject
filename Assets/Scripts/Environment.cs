@@ -51,8 +51,18 @@ public class Environment
     {
         if (values.ContainsKey(name.textValue))
         {
-            values[name.textValue] = value;
-            return;
+            switch (name.seeMMType)
+            {
+                case TokenType.INT when value is not int:
+                    throw new RuntimeError(name, "Cannot assign a non-int value to an int variable.");
+                case TokenType.BOOL when value is not bool:
+                    throw new RuntimeError(name, "Cannot assign a non-bool value to a bool variable.");
+                case TokenType.FLOAT when value is not decimal:
+                    throw new RuntimeError(name, "Cannot assign a non-floating point value to a float variable.");
+                default:
+                    values[name.textValue] = value;
+                    return;
+            }
         }
         if (enclosing != null)
         {
