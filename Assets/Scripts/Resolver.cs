@@ -247,10 +247,14 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         }
         Dictionary<string, bool> scope = scopes.Peek();
         
-        if (scope.ContainsKey(name.textValue))//TODO: Look at this, so no 2 variables with same type and name exist!!!!
+        foreach (var sc in scopes)
         {
-            GameManager.Error(name, "Already variable with this name in this scope.");
+            if (sc.ContainsKey(name.textValue))
+            {
+                GameManager.Error(name, "Variable with this name already exists in this scope.");
+            }
         }
+        
         scope.Add(name.textValue, false);
     }
 
@@ -262,6 +266,4 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         }
         scopes.Peek()[name.textValue] = true;
     }
-
-    
 }

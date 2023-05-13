@@ -29,9 +29,10 @@ public class GameManager : MonoBehaviour
         interpreter = new Interpreter();
         lexer = new Lexer();
         var tokens = lexer.ScanCode(text.text);
-        //interpreter.TestExpr(expression);
+        
         parser = new Parser(tokens);
         var statements = parser.Parse();
+        
         resolver = new Resolver(interpreter);
         resolver.Resolve(statements);
         if (hadError)
@@ -56,14 +57,14 @@ public class GameManager : MonoBehaviour
     private static void Report(int line, string where, string message)
     {
         //TODO: print to text field in UI
-        //System.err.println("[line " + line + "] Error" + where + ": " + message);
+        print("[line " + line + "] Error" + where + ": " + message);
         hadError = true;
     }
 
     public static void RuntimeError(RuntimeError error)
     {
         //TODO: print to text field in UI
-        //System.err.println(error.getMessage() + "\n[line " + error.token.line + "]");
+        print(error.Message + "\n[line " + error.token.line + "]");
         hadRuntimeError = true;
     }
 }

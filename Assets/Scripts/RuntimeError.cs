@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class RuntimeError : Exception
 {
-    readonly Token token;
+    public readonly Token token;
 
     public RuntimeError(Token token, string message):base(message)
     {
