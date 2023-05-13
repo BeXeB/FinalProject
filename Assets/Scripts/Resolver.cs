@@ -7,6 +7,7 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
     private readonly Interpreter interpreter;
     private readonly Stack<Dictionary<string, bool>> scopes = new();
     private FunctionType currentFunction = FunctionType.NONE;
+    private bool isInLoop = false;
 
     public Resolver(Interpreter interpreter)
     {
@@ -62,13 +63,20 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
 
     public object VisitBreakStatement(Statement.BreakStatement statement)
     {
-        EndScope();//TODO: Fix this shit(if we break in if statement, we dont want to break from if, but from the loop itself!!!!!)
+        if (!isInLoop)
+        {
+            GameManager.Error(statement.keyword, "Can't break when not inside loop.");
+        }
         return null;
     }
 
     public object VisitContinueStatement(Statement.ContinueStatement statement)
     {
-        throw new System.NotImplementedException();//TODO: This shit
+        if (!isInLoop)
+        {
+            GameManager.Error(statement.keyword, "Can't continue when not inside loop.");
+        }
+        return null;
     }
 
     public object VisitExpressionStatement(Statement.ExpressionStatement statement)
@@ -111,8 +119,10 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
 
     public object VisitWhileStatement(Statement.WhileStatement statement)
     {
+        isInLoop = true;
         Resolve(statement.condition);
         Resolve(statement.body);
+        isInLoop = false;
         return null;
     }
 
@@ -167,7 +177,7 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
     public object VisitVariableExpression(Expression.VariableExpression expression)
     {
         if (scopes.TryPeek(out Dictionary<string, bool> scope) &&
-            scope.TryGetValue(expression.name.value, out bool value)
+            scope.TryGetValue(expression.name.textValue, out bool value)
             && value == false)
         {
             GameManager.Error(expression.name, "Can't read local variable in its own initializer.");
@@ -194,11 +204,11 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         expression.Accept(this);
     }
 
-    private void ResolveLocal(Expression expr, Token name)//TODO: Look at this later!!!
+    private void ResolveLocal(Expression expr, Token name)
     {
         for (int i = scopes.Count - 1; i >= 0; i--)
         {
-            if (scopes.ToArray()[i].ContainsKey(name.value))
+            if (scopes.ToArray()[i].ContainsKey(name.textValue))
             {
                 interpreter.Resolve(expr, i);
                 return;
@@ -236,11 +246,12 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
             return;
         }
         Dictionary<string, bool> scope = scopes.Peek();
-        if (scope.ContainsKey(name.value))//TODO: Look at this, so no 2 variables with same type and name exist!!!!
+        
+        if (scope.ContainsKey(name.textValue))//TODO: Look at this, so no 2 variables with same type and name exist!!!!
         {
             GameManager.Error(name, "Already variable with this name in this scope.");
         }
-        scope.Add(name.value, false);
+        scope.Add(name.textValue, false);
     }
 
     private void Define(Token name)
@@ -249,7 +260,7 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         {
             return;
         }
-        scopes.Peek()[name.value] = true;
+        scopes.Peek()[name.textValue] = true;
     }
 
     

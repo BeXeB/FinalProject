@@ -17,17 +17,17 @@ public class Environment
     }
     public object Get(Token name)
     {
-        if (values.ContainsKey(name.value))
+        if (values.ContainsKey(name.textValue))
         {
             object type;
-            values.TryGetValue(name.value, out type);
+            values.TryGetValue(name.textValue, out type);
             return type;
         }
         if (enclosing != null)
         {
             return enclosing.Get(name);
         }
-        throw new RuntimeError(name, "Undefined variable '" + name.value + "'.");
+        throw new RuntimeError(name, "Undefined variable '" + name.textValue + "'.");
     }
 
     public object GetAt(int distance, string name)
@@ -39,7 +39,7 @@ public class Environment
 
     public void AssignAt(int distance, Token name, object value)
     {
-        Ancestor(distance).values[name.value] = value;
+        Ancestor(distance).values[name.textValue] = value;
     }
 
     public void Define(string name, object value)
@@ -49,9 +49,9 @@ public class Environment
 
     public void Assign(Token name, object value)
     {
-        if (values.ContainsKey(name.value))
+        if (values.ContainsKey(name.textValue))
         {
-            values[name.value] = value;
+            values[name.textValue] = value;
             return;
         }
         if (enclosing != null)
@@ -59,7 +59,7 @@ public class Environment
             enclosing.Assign(name, value);
             return;
         }
-        throw new RuntimeError(name, "Undefined variable '" + name.value + "'.");
+        throw new RuntimeError(name, "Undefined variable '" + name.textValue + "'.");
     }
 
     Environment Ancestor(int distance)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -196,7 +197,10 @@ public class Lexer
                 Advance();
             }
         }
-        AddToken(TokenType.NUMBER);
+        AddToken(TokenType.NUMBER, 
+            Convert.ToDouble(
+                code.Substring(startIndex, currentIndex - startIndex), 
+                System.Globalization.CultureInfo.InvariantCulture));
     }
 
     private void Identifier()
@@ -215,9 +219,9 @@ public class Lexer
         AddToken(type);
     }
 
-    private void AddToken(TokenType type)
+    private void AddToken(TokenType type, object literal = null)
     {
         string text = code.Substring(startIndex, currentIndex - startIndex);
-        tokens.Add(new Token { type = type, line = line, startIndex = startIndex, value = text });
+        tokens.Add(new Token { type = type, line = line, startIndex = startIndex, textValue = text, literal = literal });
     }
 }

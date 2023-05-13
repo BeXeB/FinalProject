@@ -22,7 +22,7 @@ public class Function : ICallable
         Environment environment = new Environment(closure);
         for (int i = 0; i < declaration.parameters.Count; i++) 
         {
-            environment.Define(declaration.parameters[i].value, arguments[i]);
+            environment.Define(declaration.parameters[i].textValue, arguments[i]);
         }
         try
         {

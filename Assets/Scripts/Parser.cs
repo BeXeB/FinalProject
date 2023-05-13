@@ -90,6 +90,8 @@ public class Parser
     {
         if (Match(TokenType.IF)) return IfStatement();
         if (Match(TokenType.RETURN)) return ReturnStatement();
+        if (Match(TokenType.BREAK)) return BreakStatement();
+        if (Match(TokenType.CONTINUE)) return ContinueStatement();
         if (Match(TokenType.WHILE)) return WhileStatement();
         if (Match(TokenType.LEFT_BRACE)) return new Statement.BlockStatement(Block());
 
@@ -120,6 +122,20 @@ public class Parser
         }
         Consume(TokenType.SEMICOLON, "Expect ';' after return value.");
         return new Statement.ReturnStatement(keyword, value);
+    }
+    
+    private Statement BreakStatement()
+    {
+        Token keyword = Previous();
+        Consume(TokenType.SEMICOLON, "Expect ';' after break.");
+        return new Statement.BreakStatement(keyword);
+    }
+    
+    private Statement ContinueStatement()
+    {
+        Token keyword = Previous();
+        Consume(TokenType.SEMICOLON, "Expect ';' after continue.");
+        return new Statement.ContinueStatement(keyword);
     }
 
     private Statement ExpressionStatement()
@@ -299,7 +315,7 @@ public class Parser
         }
         if (Match(TokenType.NUMBER))
         {
-            return new Expression.LiteralExpression(Previous().value);
+            return new Expression.LiteralExpression(Previous().literal);
         }
         if (Match(TokenType.IDENTIFIER))
         {

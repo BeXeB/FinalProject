@@ -3,7 +3,8 @@ public struct Token
     public TokenType type;
     public int line;
     public int startIndex;
-    public string value;
+    public object literal;
+    public string textValue;
 }
 public enum TokenType
 {

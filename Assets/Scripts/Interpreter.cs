@@ -71,31 +71,31 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
             case TokenType.EQUAL_EQUAL: 
                 return IsEqual(left, right);
             case TokenType.GREATER:
-                CheckNumberOperands(left, right);
+                CheckNumberOperands(left, right, expression.op);
                 return Convert.ToDouble(left, CultureInfo.InvariantCulture) > Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.GREATER_EQUAL:
-                CheckNumberOperands(left, right);
+                CheckNumberOperands(left, right, expression.op);
                 return Convert.ToDouble(left, CultureInfo.InvariantCulture) >= Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.LESS:
-                CheckNumberOperands(left, right);
+                CheckNumberOperands(left, right, expression.op);
                 return Convert.ToDouble(left, CultureInfo.InvariantCulture) < Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.LESS_EQUAL:
-                CheckNumberOperands(left, right);
+                CheckNumberOperands(left, right, expression.op);
                 return Convert.ToDouble(left, CultureInfo.InvariantCulture) <= Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.MINUS:
-                CheckNumberOperands(left, right);
+                CheckNumberOperands(left, right, expression.op);
                 return Convert.ToDouble(left, CultureInfo.InvariantCulture) - Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.PLUS:
-                CheckNumberOperands(left, right);
+                CheckNumberOperands(left, right, expression.op);
                 return Convert.ToDouble(left, CultureInfo.InvariantCulture) + Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.SLASH:
-                CheckNumberOperands(left, right);
+                CheckNumberOperands(left, right, expression.op);
                 return Convert.ToDouble(left, CultureInfo.InvariantCulture) / Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.STAR:
-                CheckNumberOperands(left, right);
+                CheckNumberOperands(left, right, expression.op);
                 return Convert.ToDouble(left, CultureInfo.InvariantCulture) * Convert.ToDouble(right, CultureInfo.InvariantCulture);
             case TokenType.MOD:
-                CheckNumberOperands(left, right);
+                CheckNumberOperands(left, right, expression.op);
                 return Convert.ToDouble(left, CultureInfo.InvariantCulture) % Convert.ToDouble(right, CultureInfo.InvariantCulture);
         }
         return null;
@@ -178,21 +178,21 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
             case TokenType.NOT:
                 return !IsTruthy(right);
             case TokenType.MINUS:
-                CheckNumberOperand(right);
+                CheckNumberOperand(right, expression.op);
                 return -Convert.ToDouble(right);
         }
         return null;
     }
 
-    private void CheckNumberOperand(object operand)
+    private void CheckNumberOperand(object operand, Token op)
     {
         if (operand is double) return;
-        //throw new RuntimeError(operator, "Operand must be a number.");
+        throw new RuntimeError(op, "Operand must be a number.");
     }
-    private void CheckNumberOperands(object left, object right)
+    private void CheckNumberOperands(object left, object right,Token op)
     {
         if (left is double && right is double) return;
-        //throw new RuntimeError(operator, "Operands must be numbers.");
+        throw new RuntimeError(op, "Operands must be numbers.");
     }
     private bool IsEqual(object a, object b)
     {
@@ -217,7 +217,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     {
         if (locals.TryGetValue(expression, out int distance))
         {
-            return environment.GetAt(distance, name.value);
+            return environment.GetAt(distance, name.textValue);
         }
         else
         {
@@ -240,7 +240,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     public object VisitFunctionStatement(Statement.FunctionStatement statement)
     {
         Function function = new Function(statement, environment);
-        environment.Define(statement.name.value, function);
+        environment.Define(statement.name.textValue, function);
         return null;
     }
 
@@ -266,12 +266,12 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
 
     public object VisitBreakStatement(Statement.BreakStatement statement)
     {
-        throw new NotImplementedException();
+        throw new Break();
     }
 
     public object VisitContinueStatement(Statement.ContinueStatement statement)
     {
-        throw new NotImplementedException();
+        throw new Continue();
     }
 
     public object VisitIntStatement(Statement.IntStatement statement)
@@ -281,7 +281,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         {
             value = Evaluate(statement.initializer);
         }
-        environment.Define(statement.name.value, value);
+        environment.Define(statement.name.textValue, value);
         return null;
     }
 
@@ -292,7 +292,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         {
             value = Evaluate(statement.initializer);
         }
-        environment.Define(statement.name.value, value);
+        environment.Define(statement.name.textValue, value);
         return null;
     }
 
@@ -303,17 +303,28 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         {
             value = Evaluate(statement.initializer);
         }
-        environment.Define(statement.name.value, value);
+        environment.Define(statement.name.textValue, value);
         return null;
     }
 
     public object VisitWhileStatement(Statement.WhileStatement statement)
     {
-        while (IsTruthy(Evaluate(statement.condition)))
+        try
         {
-            Execute(statement.body);
+            while (IsTruthy(Evaluate(statement.condition)))
+            {
+                try
+                {
+                    Execute(statement.body);
+                }
+                catch (Continue) { continue; }
+            }
+            return null;
         }
-        return null;
+        catch (Break)
+        {
+            return null;
+        }
     }
 
 }

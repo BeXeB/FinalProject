@@ -24,7 +24,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Start is called before the first frame update
     void Start()
     {
         interpreter = new Interpreter();
@@ -42,12 +41,6 @@ public class GameManager : MonoBehaviour
         interpreter.InterpretCode(statements);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     public static void Error(Token token, string message)
     {
         if (token.type == TokenType.EOF)
@@ -56,7 +49,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Report(token.line, " at '" + token.value + "'", message);
+            Report(token.line, " at '" + token.textValue + "'", message);
         }
     }
 
