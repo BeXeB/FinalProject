@@ -8,6 +8,7 @@ public class Parser
 
     private readonly List<Token> tokens;
     private int current = 0;
+    private int fuctions = 0;
     public Parser(List<Token> tokens)
     {
         this.tokens = tokens;
@@ -18,7 +19,16 @@ public class Parser
         List<Statement> statements = new List<Statement>();
         while (!IsAtEnd())
         {
-            statements.Add(Declaration());
+            var declaration = Declaration();
+            if (declaration is Statement.FunctionStatement)
+            {
+                statements.Insert(fuctions, declaration);
+                fuctions++;
+            }
+            else
+            {
+                statements.Add(declaration);
+            }
         }
         return statements;
     }

@@ -12,6 +12,7 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
     public Resolver(Interpreter interpreter)
     {
         this.interpreter = interpreter;
+        
     }
 
     private enum FunctionType
@@ -87,6 +88,10 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
 
     public object VisitFunctionStatement(Statement.FunctionStatement statement)
     {
+        if (currentFunction != FunctionType.NONE)
+        {
+            GameManager.Error(statement.name, "Can't nest functions.");
+        }
         Declare(statement.name);
         Define(statement.name);
         ResolveFunction(statement, FunctionType.FUNCTION);

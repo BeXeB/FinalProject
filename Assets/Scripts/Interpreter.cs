@@ -1,12 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System;
 using System.Globalization;
 
 public class Interpreter : Expression.IExpressionVisitor<object>, Statement.IStatementVisitor<object>
 {
-    private readonly Environment globals = new();
+    public readonly Environment globals = new();
     private Environment environment;
     private readonly Dictionary<Expression, int> locals = new();
 
@@ -239,8 +237,8 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
 
     public object VisitFunctionStatement(Statement.FunctionStatement statement)
     {
-        Function function = new Function(statement, environment);
-        environment.Define(statement.name.textValue, function);
+        Function function = new Function(statement, globals);
+        globals.Define(statement.name.textValue, function);
         return null;
     }
 
