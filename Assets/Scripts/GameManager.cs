@@ -35,7 +35,7 @@ public class GameManager : MonoBehaviour
         
         resolver = new Resolver(interpreter);
         resolver.Resolve(statements);
-        if (hadError)
+        if (hadError || hadRuntimeError)
         {
             return;
         }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public interface ICallable
 {
@@ -17,11 +18,28 @@ public class Clock : ICallable
 
     public object Call(Interpreter interpreter, List<object> arguments)
     {
-        return (decimal)System.DateTime.Now.Ticks / System.TimeSpan.TicksPerSecond;
+        return (decimal)DateTime.Now.Ticks / TimeSpan.TicksPerSecond;
+    }
+}
+
+public class ExternalFunction : ICallable
+{
+    private int arity;
+    private Action<List<object>> unityEvent;
+    public ExternalFunction(int arity, Action<List<object>> unityEvent)
+    {
+        this.arity = arity;
+        this.unityEvent = unityEvent;
     }
 
-    public override string ToString()
+    public int Arity()
     {
-        return "<native fn>";
+        return arity;
+    }
+
+    public object Call(Interpreter interpreter, List<object> arguments)
+    {
+        unityEvent.Invoke(arguments);
+        return null;
     }
 }
