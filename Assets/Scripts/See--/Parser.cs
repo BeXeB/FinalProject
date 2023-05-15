@@ -6,10 +6,11 @@ public class Parser
 {
     private class ParseError : System.Exception { }
 
-    private readonly List<Token> tokens;
+    private List<Token> tokens;
     private int current = 0;
     private int fuctions = 0;
-    public Parser(List<Token> tokens)
+    
+    public void SetTokens(List<Token> tokens)
     {
         this.tokens = tokens;
     }
@@ -43,7 +44,7 @@ public class Parser
             if (Match(TokenType.BOOL)) return VariableDeclaration(TokenType.BOOL);
             return Statement();
         }
-        catch (ParseError error)
+        catch (ParseError)
         {
             Synchronize();
             return null;

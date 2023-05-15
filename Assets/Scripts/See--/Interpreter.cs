@@ -1,17 +1,35 @@
 using System.Collections.Generic;
 using System;
 using System.Globalization;
+using JetBrains.Annotations;
 
 public class Interpreter : Expression.IExpressionVisitor<object>, Statement.IStatementVisitor<object>
 {
-    public readonly Environment globals = new();
+    private readonly Environment globals = new();
     private Environment environment;
     private readonly Dictionary<Expression, int> locals = new();
 
-    public Interpreter()
+    public Interpreter(Dictionary<string,SeeMMExternalFunction> externalFunctions = null, List<Token> externalVariables = null)
     {
-        globals.Define("clock", 
-        new Clock());
+        globals.Define("clock", new Clock());
+        globals.Define("print", new Print());
+        
+        if (externalFunctions is not null)
+        {
+            foreach (var function in externalFunctions)
+            {
+                globals.Define(function.Key, function.Value);
+            }
+        }
+
+        if (externalVariables is not null)
+        {
+            foreach (var variable in externalVariables)
+            {
+                globals.Define(variable.textValue, variable.literal);
+            }
+        }
+        
         environment = globals;
     }
 
@@ -82,18 +100,42 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
                 return Convert.ToDecimal(left, CultureInfo.InvariantCulture) <= Convert.ToDecimal(right, CultureInfo.InvariantCulture);
             case TokenType.MINUS:
                 CheckNumberOperands(left, right, expression.op);
+                if (CheckIntegerOperands(left, right))
+                {
+                    return Convert.ToInt32(left, CultureInfo.InvariantCulture) - Convert.ToInt32(right, CultureInfo.InvariantCulture);
+                }
                 return Convert.ToDecimal(left, CultureInfo.InvariantCulture) - Convert.ToDecimal(right, CultureInfo.InvariantCulture);
             case TokenType.PLUS:
                 CheckNumberOperands(left, right, expression.op);
+                if (CheckIntegerOperands(left, right))
+                {
+                    return Convert.ToInt32(left, CultureInfo.InvariantCulture) + Convert.ToInt32(right, CultureInfo.InvariantCulture);
+                }
                 return Convert.ToDecimal(left, CultureInfo.InvariantCulture) + Convert.ToDecimal(right, CultureInfo.InvariantCulture);
             case TokenType.SLASH:
                 CheckNumberOperands(left, right, expression.op);
+                if (Convert.ToDecimal(right, CultureInfo.InvariantCulture) == 0)
+                {
+                    throw new RuntimeError(expression.op, "Division by zero.");
+                }
+                if (CheckIntegerOperands(left, right))
+                {
+                    return Convert.ToInt32(left, CultureInfo.InvariantCulture) / Convert.ToInt32(right, CultureInfo.InvariantCulture);
+                }
                 return Convert.ToDecimal(left, CultureInfo.InvariantCulture) / Convert.ToDecimal(right, CultureInfo.InvariantCulture);
             case TokenType.STAR:
                 CheckNumberOperands(left, right, expression.op);
+                if (CheckIntegerOperands(left, right))
+                {
+                    return Convert.ToInt32(left, CultureInfo.InvariantCulture) * Convert.ToInt32(right, CultureInfo.InvariantCulture);
+                }
                 return Convert.ToDecimal(left, CultureInfo.InvariantCulture) * Convert.ToDecimal(right, CultureInfo.InvariantCulture);
             case TokenType.MOD:
                 CheckNumberOperands(left, right, expression.op);
+                if (CheckIntegerOperands(left, right))
+                {
+                    return Convert.ToInt32(left, CultureInfo.InvariantCulture) % Convert.ToInt32(right, CultureInfo.InvariantCulture);
+                }
                 return Convert.ToDecimal(left, CultureInfo.InvariantCulture) % Convert.ToDecimal(right, CultureInfo.InvariantCulture);
         }
         return null;
@@ -181,17 +223,25 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         }
         return null;
     }
+    
+    private bool CheckIntegerOperands(object left, object right)
+    {
+        return 
+            (left is int || left is decimal leftAsDecimal && leftAsDecimal % 1 == 0) && 
+            (right is int || right is decimal rightAsDecimal && rightAsDecimal % 1 == 0);
+    }
 
     private void CheckNumberOperand(object operand, Token op)
     {
-        if (operand is decimal) return;
+        if (operand is decimal or int) return;
         throw new RuntimeError(op, "Operand must be a number.");
     }
     private void CheckNumberOperands(object left, object right,Token op)
     {
-        if (left is decimal && right is decimal) return;
+        if (left is decimal or int && right is decimal or int) return;
         throw new RuntimeError(op, "Operands must be numbers.");
     }
+    
     private bool IsEqual(object a, object b)
     {
         if (a == null && b == null) return true;
@@ -211,7 +261,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         return true;
     }
 
-    private object LookUpVariable(Token name, Expression expression)
+    public object LookUpVariable(Token name, Expression expression)
     {
         if (locals.TryGetValue(expression, out int distance))
         {
@@ -279,11 +329,12 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         {
             value = Evaluate(statement.initializer);
         }
-        if (!int.TryParse(value?.ToString(), out int intValue))
+        if (value is not int && value is decimal leftAsDecimal && leftAsDecimal % 1 != 0)
         {
             throw new RuntimeError(statement.name, "Initializer must be an integer.");
         }
-        environment.Define(statement.name.textValue, intValue);
+        value = Convert.ToInt32(value, CultureInfo.InvariantCulture);
+        environment.Define(statement.name.textValue, value);
         return null;
     }
 

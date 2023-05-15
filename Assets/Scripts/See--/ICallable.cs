@@ -22,11 +22,26 @@ public class Clock : ICallable
     }
 }
 
-public class ExternalFunction : ICallable
+public class Print : ICallable
+{
+    public int Arity()
+    {
+        return 1;
+    }
+
+    public object Call(Interpreter interpreter, List<object> arguments)
+    {
+        //TODO: Change this to the Code Editor console
+        Debug.Log(arguments[0]);
+        return null;
+    }
+}
+
+public class SeeMMExternalFunction : ICallable
 {
     private int arity;
-    private Action<List<object>> unityEvent;
-    public ExternalFunction(int arity, Action<List<object>> unityEvent)
+    private Func<List<object>, object> unityEvent;
+    public SeeMMExternalFunction(int arity, Func<List<object>, object> unityEvent)
     {
         this.arity = arity;
         this.unityEvent = unityEvent;
@@ -39,7 +54,6 @@ public class ExternalFunction : ICallable
 
     public object Call(Interpreter interpreter, List<object> arguments)
     {
-        unityEvent.Invoke(arguments);
-        return null;
+        return unityEvent.Invoke(arguments);
     }
 }

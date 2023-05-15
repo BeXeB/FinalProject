@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 public class Environment
@@ -53,11 +55,14 @@ public class Environment
         {
             switch (name.seeMMType)
             {
-                case TokenType.INT when value is not int:
+                case TokenType.INT when value is not int && value is decimal valueAsDecimal && valueAsDecimal % 1 != 0:
                     throw new RuntimeError(name, "Cannot assign a non-int value to an int variable.");
+                case TokenType.INT when value is int || value is decimal valueAsDecimal && valueAsDecimal % 1 == 0:
+                    values[name.textValue] = Convert.ToInt32(value, CultureInfo.InvariantCulture);
+                    return;
                 case TokenType.BOOL when value is not bool:
                     throw new RuntimeError(name, "Cannot assign a non-bool value to a bool variable.");
-                case TokenType.FLOAT when value is not decimal:
+                case TokenType.FLOAT when value is not decimal && value is not int:
                     throw new RuntimeError(name, "Cannot assign a non-floating point value to a float variable.");
                 default:
                     values[name.textValue] = value;

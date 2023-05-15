@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatementVisitor<object>
 {
-    private readonly Interpreter interpreter;
+    private Interpreter interpreter;
     private readonly Stack<Dictionary<string, bool>> scopes = new();
     private FunctionType currentFunction = FunctionType.NONE;
     private bool isInLoop = false;
 
-    public Resolver(Interpreter interpreter)
+    
+    public void SetInterpreter(Interpreter interpreter)
     {
         this.interpreter = interpreter;
-        
     }
 
     private enum FunctionType

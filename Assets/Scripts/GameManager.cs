@@ -24,23 +24,23 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        interpreter = new Interpreter();
-        lexer = new Lexer();
-        var tokens = lexer.ScanCode(text.text);
-        
-        parser = new Parser(tokens);
-        var statements = parser.Parse();
-        
-        resolver = new Resolver(interpreter);
-        resolver.Resolve(statements);
-        if (hadError || hadRuntimeError)
-        {
-            return;
-        }
-        interpreter.InterpretCode(statements);
-    }
+    // void Start()
+    // {
+    // interpreter = new Interpreter();
+    // lexer = new Lexer();
+    // var tokens = lexer.ScanCode(text.text);
+    //
+    // parser = new Parser(tokens);
+    // var statements = parser.Parse();
+    //
+    // resolver = new Resolver(interpreter);
+    // resolver.Resolve(statements);
+    // if (hadError || hadRuntimeError)
+    // {
+    //     return;
+    // }
+    // interpreter.InterpretCode(statements);
+    // }
 
     public static void Error(Token token, string message)
     {
@@ -64,7 +64,7 @@ public class GameManager : MonoBehaviour
     public static void RuntimeError(RuntimeError error)
     {
         //TODO: print to text field in UI
-        print(error.Message + "\n[line " + error.token.line + "]");
+        print("[" + error.token.textValue + "]" + error.Message + "\n[line " + error.token.line + "]");
         hadRuntimeError = true;
     }
 }

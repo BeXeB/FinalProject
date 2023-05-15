@@ -1,0 +1,5 @@
+float a = 2;
+int b = 1;
+b = 2.5 * 2;
+
+print(test(a, b));
