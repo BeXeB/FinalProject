@@ -4,7 +4,7 @@ using System.Collections;
 using System.Globalization;
 using UnityEngine;
 
-public class Interpreter : MonoBehaviour, Expression.IExpressionVisitor<object>, Statement.IStatementVisitor<object>
+public class Interpreter : Expression.IExpressionVisitor<object>, Statement.IStatementVisitor<object>
 {
     private readonly Environment globals = new();
     private Environment environment;
