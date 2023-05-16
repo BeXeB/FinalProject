@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using System;
+using System.Collections;
 using System.Globalization;
-using JetBrains.Annotations;
+using UnityEngine;
 
-public class Interpreter : Expression.IExpressionVisitor<object>, Statement.IStatementVisitor<object>
+public class Interpreter : MonoBehaviour, Expression.IExpressionVisitor<object>, Statement.IStatementVisitor<object>
 {
     private readonly Environment globals = new();
     private Environment environment;
@@ -11,7 +12,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
 
     public Interpreter(Dictionary<string,SeeMMExternalFunction> externalFunctions = null, List<Token> externalVariables = null)
     {
-        globals.Define("clock", new Clock());
+        globals.Define("deltatime", new Clock());
         globals.Define("print", new Print());
         
         if (externalFunctions is not null)
@@ -261,9 +262,21 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         return true;
     }
 
-    public object LookUpVariable(Token name, Expression expression)
+    private object LookUpVariable(Token name, Expression expression)
     {
         if (locals.TryGetValue(expression, out int distance))
+        {
+            return environment.GetAt(distance, name.textValue);
+        }
+        else
+        {
+            return globals.Get(name);
+        }
+    }
+    
+    public object LookUpVariable(Token name)
+    {
+        if (locals.TryGetValue(new Expression.VariableExpression(name), out int distance))
         {
             return environment.GetAt(distance, name.textValue);
         }
@@ -287,8 +300,8 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
 
     public object VisitFunctionStatement(Statement.FunctionStatement statement)
     {
-        Function function = new Function(statement, globals);
-        globals.Define(statement.name.textValue, function);
+        Function function = new Function(statement, environment);
+        environment.Define(statement.name.textValue, function);
         return null;
     }
 
@@ -387,5 +400,4 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
             return null;
         }
     }
-
 }

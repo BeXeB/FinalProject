@@ -170,7 +170,16 @@ public class Parser
         List<Statement> statements = new List<Statement>();
         while (!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
         {
-            statements.Add(Declaration());
+            var declaration = Declaration();
+            if (declaration is Statement.FunctionStatement)
+            {
+                statements.Insert(fuctions, declaration);
+                fuctions++;
+            }
+            else
+            {
+                statements.Add(declaration);
+            }
         }
         Consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
         return statements;

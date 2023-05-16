@@ -1,5 +1,19 @@
-float a = 2;
-int b = 1;
-b = 2.5 * 2;
+float speed = 100;
+bool b = true;
 
-print(test(a, b));
+function rotate(sped) {
+    rotation = rotation + sped * deltaTime();
+    return rotation;
+}
+
+
+while (rotation < 360 && b) {
+    if (b) {    
+        print(rotate(speed));
+    } else {
+        if (b) {
+            b = false;
+            rotation = 0;
+        }
+    }
+}

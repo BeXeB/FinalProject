@@ -18,7 +18,7 @@ public class Clock : ICallable
 
     public object Call(Interpreter interpreter, List<object> arguments)
     {
-        return (decimal)DateTime.Now.Ticks / TimeSpan.TicksPerSecond;
+        return Convert.ToDecimal(Time.deltaTime);
     }
 }
 

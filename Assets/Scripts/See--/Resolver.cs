@@ -232,6 +232,7 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         }
         Resolve(function.body);
         EndScope();
+        currentFunction = FunctionType.NONE;
     }
 
     private void BeginScope()
