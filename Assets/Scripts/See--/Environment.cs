@@ -46,6 +46,10 @@ public class Environment
 
     public void Define(string name, object value)
     {
+        //if (values.ContainsKey(name))
+        //{
+        //    return;
+        //}
         values.Add(name, value);
     }
 

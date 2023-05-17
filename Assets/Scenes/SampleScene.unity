@@ -690,6 +690,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 5
   rigidBody: {fileID: 634598419}
+  turret: {fileID: 1822508246}
 --- !u!4 &634598421
 Transform:
   m_ObjectHideFlags: 0

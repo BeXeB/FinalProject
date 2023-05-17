@@ -1,8 +1,9 @@
 using System;
 using System.Globalization;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-public class Turret : MonoBehaviour
+public class Turret : MonoBehaviour, IInteractable
 {
     private CodeRunner codeRunner;
 
@@ -24,5 +25,12 @@ public class Turret : MonoBehaviour
             };
             codeRunner.extVariables[i] = extVar;
         }
+    }
+
+    public void Interact()
+    {
+        SceneManager.LoadScene("CodeEditor", LoadSceneMode.Additive);//TODO: check why this doesnt work
+        SceneManager.SetActiveScene(SceneManager.GetSceneByName("CodeEditor"));
+        CodeEditor.instance.SetCodeRunner(codeRunner);
     }
 }

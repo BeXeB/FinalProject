@@ -1,19 +1,41 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CodeEditor : MonoBehaviour
 {
+    CodeRunner codeRunner;
+    public static CodeEditor instance;
 
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] private TMP_InputField inputField;
+
+    private CodeEditor()
     {
-        
+        if (instance == null)
+        {
+            instance = this;
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    public void OnButtonPressed()
     {
-        
+        if (inputField.text.Contains("function main() {"))//TODO: check this, if main is in globals
+        {
+            codeRunner.RunFromEditor(inputField.text);
+            codeRunner.SetIsEditorOpen(false);
+        }
+        else
+        {
+            Debug.Log("Missing Main()");
+        }
+
+    }
+
+    public void SetCodeRunner(CodeRunner codeRunner)
+    {
+        this.codeRunner = codeRunner;
+        this.codeRunner.SetIsEditorOpen(true);
     }
 }

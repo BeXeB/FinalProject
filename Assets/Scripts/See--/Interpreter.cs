@@ -250,7 +250,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
 
         return a.Equals(b);
     }
-    private object Evaluate(Expression expr)
+    public object Evaluate(Expression expr)
     {
         return expr.Accept(this);
     }
@@ -399,5 +399,10 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         {
             return null;
         }
+    }
+
+    public Environment GetGlobals()
+    {
+        return globals;
     }
 }

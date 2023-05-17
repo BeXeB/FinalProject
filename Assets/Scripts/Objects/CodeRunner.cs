@@ -36,6 +36,8 @@ public class CodeRunner : MonoBehaviour
     private List<Token> tokens;
     private List<Statement> statements;
 
+    private Expression callExpression;
+
     private void Awake()
     {
         var extFunctions = new Dictionary<string, SeeMMExternalFunction>();
@@ -80,23 +82,28 @@ public class CodeRunner : MonoBehaviour
 
     private void Start()
     {
-        CheckCode();
-        StartCoroutine(RunCode());
+        CheckCode(codeFile.text);
+        interpreter.InterpretCode(statements);
+        callExpression = new Expression.CallExpression(
+            new Expression.VariableExpression(new Token { textValue = "main" }),
+            new Token { type = TokenType.RIGHT_PAREN },
+            new List<Expression>());
+        //StartCoroutine(RunCode());
     }
 
     private void Update()
     {
-        // if (!shouldRun || isEditorOpen)
-        // {
-        //     return;
-        // }
-        //
-        // StartCoroutine(RunCode());
+        if (!shouldRun || isEditorOpen)
+        {
+            return;
+        }
+
+        StartCoroutine(RunCode());
     }
 
-    private void CheckCode()
+    private void CheckCode(string code)
     {
-        tokens = lexer.ScanCode("{" + codeFile.text + "}");
+        tokens = lexer.ScanCode(code);
         parser.SetTokens(tokens);
         statements = parser.Parse();
         resolver.Resolve(statements);
@@ -105,7 +112,7 @@ public class CodeRunner : MonoBehaviour
     private IEnumerator RunCode()
     {
         shouldRun = false;
-        interpreter.InterpretCode(statements);
+        interpreter.Evaluate(callExpression);
         
         for (var i = 0; i < extVariableTokens.Count; i++)
         {
@@ -125,5 +132,16 @@ public class CodeRunner : MonoBehaviour
 
         yield return null;//new WaitForSeconds(.1f);
         shouldRun = true;
+    }
+
+    public void SetIsEditorOpen(bool isEditorOpen)
+    {
+        this.isEditorOpen = isEditorOpen;
+    }
+
+    public void RunFromEditor(string code)
+    {
+        CheckCode(code);
+        interpreter.InterpretCode(statements);
     }
 }

@@ -1,19 +1,19 @@
 float speed = 100;
-bool b = true;
+int b = 0;
 
 function rotate(sped) {
     rotation = rotation + sped * deltaTime();
     return rotation;
 }
 
-
-while (rotation < 360 && b) {
-    if (b) {    
-        print(rotate(speed));
-    } else {
-        if (b) {
-            b = false;
+function main() {
+    while(b < 2) {
+        if (rotation < 360) {    
+            print(rotate(speed));
+        } else {
+            b = b + 1;
             rotation = 0;
         }
     }
 }
+
