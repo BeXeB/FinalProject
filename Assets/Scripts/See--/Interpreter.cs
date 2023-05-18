@@ -6,12 +6,19 @@ using UnityEngine;
 
 public class Interpreter : Expression.IExpressionVisitor<object>, Statement.IStatementVisitor<object>
 {
-    private readonly Environment globals = new();
+    private Environment globals;
     private Environment environment;
     private readonly Dictionary<Expression, int> locals = new();
 
     public Interpreter(Dictionary<string,SeeMMExternalFunction> externalFunctions = null, List<Token> externalVariables = null)
     {
+        InitGlobals(externalFunctions, externalVariables);
+    }
+    
+    public void InitGlobals(Dictionary<string,SeeMMExternalFunction> externalFunctions = null, List<Token> externalVariables = null)
+    {
+        globals = new Environment();
+        
         globals.Define("deltatime", new Clock());
         globals.Define("print", new Print());
         

@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class CodeEditor : MonoBehaviour
 {
@@ -21,16 +18,16 @@ public class CodeEditor : MonoBehaviour
 
     public void OnButtonPressed()
     {
-        if (inputField.text.Contains("function main() {"))//TODO: check this, if main is in globals
+        codeRunner.RunFromEditor(inputField.text);
+
+        if (codeRunner.RunFromEditor(inputField.text))
         {
-            codeRunner.RunFromEditor(inputField.text);
             codeRunner.SetIsEditorOpen(false);
         }
         else
         {
             Debug.Log("Missing Main()");
         }
-
     }
 
     public void SetCodeRunner(CodeRunner codeRunner)

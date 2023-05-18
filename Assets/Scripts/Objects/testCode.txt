@@ -1,4 +1,4 @@
-float speed = 100;
+float speed = 1000;
 int b = 0;
 
 function rotate(sped) {
@@ -7,13 +7,10 @@ function rotate(sped) {
 }
 
 function main() {
-    while(b < 2) {
-        if (rotation < 360) {    
-            print(rotate(speed));
-        } else {
-            b = b + 1;
-            rotation = 0;
-        }
+    if (rotation < 360 && b < 2) {    
+        print(rotate(speed));
+    } else {
+        b = b + 1;
+        rotation = 0;
     }
 }
-

@@ -31,6 +31,8 @@ public class Parser
                 statements.Add(declaration);
             }
         }
+        current = 0;
+        fuctions = 0;
         return statements;
     }
 

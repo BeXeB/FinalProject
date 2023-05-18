@@ -22,6 +22,8 @@ public class CodeRunner : MonoBehaviour
 
     private List<Token> extVariableTokens = new ();
     private List<Token> extVariableTokensPrev = new ();
+    
+    private Dictionary<string, SeeMMExternalFunction> extFunctions;
 
     private ExternalFunction[] externalFunctions;
 
@@ -40,14 +42,21 @@ public class CodeRunner : MonoBehaviour
 
     private void Awake()
     {
-        var extFunctions = new Dictionary<string, SeeMMExternalFunction>();
         externalFunctions = functionHolder.GetComponents<ExternalFunction>();
         
-        foreach (var func in externalFunctions)
-        {
-            extFunctions.Add(func.functionName, new SeeMMExternalFunction(func.arity, func.function));
-        }
-        
+        ConvertExtFunctions();
+
+        ConvertExtVariables();
+
+        interpreter = new Interpreter(extFunctions, extVariableTokens);
+        lexer = new Lexer();
+        parser = new Parser();
+        resolver = new Resolver();
+        resolver.SetInterpreter(interpreter);
+    }
+
+    private void ConvertExtVariables()
+    {
         extVariableTokens = new List<Token>();
         foreach (var variable in extVariables)
         {
@@ -55,9 +64,9 @@ public class CodeRunner : MonoBehaviour
             {
                 type = TokenType.IDENTIFIER,
                 //Convert type to the correct type
-                literal = CheckIfNumber(variable) ? 
-                    variable.seeMMType is TokenType.INT ? 
-                        Convert.ToInt32(variable.literalNumber)
+                literal = CheckIfNumber(variable)
+                    ? variable.seeMMType is TokenType.INT
+                        ? Convert.ToInt32(variable.literalNumber)
                         : Convert.ToDecimal(variable.literalNumber)
                     : variable.literalBool,
                 textValue = variable.textValue,
@@ -66,15 +75,20 @@ public class CodeRunner : MonoBehaviour
                 startIndex = -1
             });
         }
-        extVariableTokensPrev = new List<Token>(extVariableTokens);
 
-        interpreter = new Interpreter(extFunctions, extVariableTokens);
-        lexer = new Lexer();
-        parser = new Parser();
-        resolver = new Resolver();
-        resolver.SetInterpreter(interpreter);
+        extVariableTokensPrev = new List<Token>(extVariableTokens);
     }
-    
+
+    private void ConvertExtFunctions()
+    {
+        extFunctions = new Dictionary<string, SeeMMExternalFunction>();
+
+        foreach (var func in externalFunctions)
+        {
+            extFunctions.Add(func.functionName, new SeeMMExternalFunction(func.arity, func.function));
+        }
+    }
+
     private bool CheckIfNumber(ExtVariable variable)
     {
         return variable.seeMMType is TokenType.INT or TokenType.FLOAT;
@@ -88,7 +102,6 @@ public class CodeRunner : MonoBehaviour
             new Expression.VariableExpression(new Token { textValue = "main" }),
             new Token { type = TokenType.RIGHT_PAREN },
             new List<Expression>());
-        //StartCoroutine(RunCode());
     }
 
     private void Update()
@@ -139,9 +152,20 @@ public class CodeRunner : MonoBehaviour
         this.isEditorOpen = isEditorOpen;
     }
 
-    public void RunFromEditor(string code)
+    public bool RunFromEditor(string code)
     {
+        interpreter.InitGlobals(extFunctions, extVariableTokens);
         CheckCode(code);
         interpreter.InterpretCode(statements);
+
+        try
+        {
+            interpreter.GetGlobals().Get(new Token { textValue = "main" });
+            return true;
+        }
+        catch (RuntimeError)
+        {
+            return false;
+        }
     }
 }

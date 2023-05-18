@@ -10,7 +10,7 @@ public class Lexer
     int currentIndex = 0;
     string code;
 
-    List<Token> tokens = new();
+    List<Token> tokens;
     private Dictionary<string, TokenType> identifiers = new ();
 
     static Dictionary<string, TokenType> keyWords = new Dictionary<string, TokenType>()
@@ -31,6 +31,7 @@ public class Lexer
 
     public List<Token> ScanCode(string rawCode)
     {
+        tokens = new List<Token>();
         code = rawCode.ToLower();
         while (currentIndex < code.Length)
         {
@@ -38,6 +39,7 @@ public class Lexer
             ScanToken();
         }
         AddToken(TokenType.EOF);
+        currentIndex = 0;
         return tokens;
     }
 

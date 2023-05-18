@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -29,7 +30,13 @@ public class Turret : MonoBehaviour, IInteractable
 
     public void Interact()
     {
-        SceneManager.LoadScene("CodeEditor", LoadSceneMode.Additive);//TODO: check why this doesnt work
+        StartCoroutine(LoadEditor());
+    }
+    
+    private IEnumerator LoadEditor()
+    {
+        var sceneLoadOp = SceneManager.LoadSceneAsync("CodeEditor", LoadSceneMode.Additive);
+        yield return new WaitUntil(() => sceneLoadOp.isDone); 
         SceneManager.SetActiveScene(SceneManager.GetSceneByName("CodeEditor"));
         CodeEditor.instance.SetCodeRunner(codeRunner);
     }
