@@ -3,10 +3,15 @@ using System.Collections;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public class Turret : MonoBehaviour, IInteractable
 {
     private CodeRunner codeRunner;
+
+    private GameObject player;
+
+    private bool canBeInteracted = false;
 
     private void Awake()
     {
@@ -30,14 +35,24 @@ public class Turret : MonoBehaviour, IInteractable
 
     public void Interact()
     {
-        StartCoroutine(LoadEditor());
+        if (canBeInteracted)
+        {
+            StartCoroutine(LoadEditor());
+        }
     }
     
     private IEnumerator LoadEditor()
     {
         var sceneLoadOp = SceneManager.LoadSceneAsync("CodeEditor", LoadSceneMode.Additive);
-        yield return new WaitUntil(() => sceneLoadOp.isDone); 
+        yield return new WaitUntil(() => sceneLoadOp.isDone);
+        player.GetComponentInParent<PlayerInput>().currentActionMap.Disable();
         SceneManager.SetActiveScene(SceneManager.GetSceneByName("CodeEditor"));
         CodeEditor.instance.SetCodeRunner(codeRunner);
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        player = collision.gameObject;
+        canBeInteracted = true;
     }
 }
