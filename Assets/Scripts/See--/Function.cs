@@ -35,8 +35,9 @@ public class Function : ICallable
         return null;
     }
 
-    /*public override string ToString()
+    public List<SeeMMType> GetArgumentTypes()
     {
-        return "<fn " + declaration.name.value + ">";
-    }*/
+        //If we want to make sure that the function is called with the correct types
+        return null;
+    }
 }

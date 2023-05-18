@@ -12,5 +12,6 @@ public class TestFunction : ExternalFunction
         {
             return Convert.ToDecimal(args[0], CultureInfo.InvariantCulture) + Convert.ToDecimal(args[1], CultureInfo.InvariantCulture);
         };
+        argumentTypes = new List<SeeMMType> {SeeMMType.FLOAT, SeeMMType.FLOAT};
     }
 }

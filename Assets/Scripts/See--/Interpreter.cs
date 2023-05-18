@@ -9,6 +9,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     private Environment globals;
     private Environment environment;
     private readonly Dictionary<Expression, int> locals = new();
+    private readonly Dictionary<string, ICallable> globalFunctions = new();
 
     public Interpreter(Dictionary<string,SeeMMExternalFunction> externalFunctions = null, List<Token> externalVariables = null)
     {
@@ -18,9 +19,14 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     public void InitGlobals(Dictionary<string,SeeMMExternalFunction> externalFunctions = null, List<Token> externalVariables = null)
     {
         globals = new Environment();
+        globalFunctions.Clear();
         
-        globals.Define("deltatime", new Clock());
-        globals.Define("print", new Print());
+        var clock = new Clock();
+        globals.Define("deltatime", clock);
+        globalFunctions.Add("deltatime", clock);
+        var print = new Print();
+        globals.Define("print", print);
+        globalFunctions.Add("print", print);
         
         if (externalFunctions is not null)
         {
@@ -411,5 +417,10 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     public Environment GetGlobals()
     {
         return globals;
+    }
+
+    public Dictionary<string,ICallable> GetGlobalFunctions()
+    {
+        return globalFunctions;
     }
 }

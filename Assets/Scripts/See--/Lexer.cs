@@ -230,15 +230,30 @@ public class Lexer
         {
             if (!identifiers.ContainsKey(token.textValue))
             {
-                var seeMMType = tokens[^1].type;
-                identifiers.Add(token.textValue, seeMMType);
-                token.seeMMType = seeMMType;
+                var prevTokenType = tokens[^1].type;
+                identifiers.Add(token.textValue, prevTokenType);
+                token.seeMMType = GetSeeMMType(prevTokenType);
             }
             else
             {
-                token.seeMMType = identifiers[token.textValue];
+                token.seeMMType = GetSeeMMType(identifiers[token.textValue]);
             }
         }
         tokens.Add(token);
+    }
+
+    private static SeeMMType GetSeeMMType(TokenType seeMMType)
+    {
+        switch (seeMMType)
+        {
+            case TokenType.INT:
+                return SeeMMType.INT;
+            case TokenType.FLOAT:
+                return SeeMMType.FLOAT;
+            case TokenType.BOOL:
+                return SeeMMType.BOOL;
+            default:
+                return SeeMMType.NONE;
+        }
     }
 }

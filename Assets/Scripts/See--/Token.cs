@@ -5,7 +5,7 @@ public struct Token
     public int startIndex;
     public object literal;
     public string textValue;
-    public TokenType seeMMType;
+    public SeeMMType seeMMType;
 }
 public enum TokenType
 {
@@ -28,5 +28,12 @@ public enum TokenType
     RETURN, TRUE, INT, FLOAT, BOOL, WHILE,
 
     EOF
+}
+
+public enum SeeMMType
+{
+    INT, FLOAT, BOOL, 
+    
+    ANY, NONE
 }
 

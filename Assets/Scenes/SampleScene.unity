@@ -253,6 +253,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   functionName: test
   arity: 2
+  argumentTypes: 
 --- !u!1 &426313337
 GameObject:
   m_ObjectHideFlags: 0
@@ -1028,17 +1029,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89127ccdb570dbf479b82ca7622ddbe6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  codeFile: {fileID: 4900000, guid: f55054e9acddb1d4a9bd62a9669732df, type: 3}
   functionHolder: {fileID: 110175509}
   extVariables:
   - textValue: c
     literalNumber: 0
     literalBool: 0
-    seeMMType: 34
+    seeMMType: 0
   - textValue: rotation
     literalNumber: 0
     literalBool: 0
-    seeMMType: 35
+    seeMMType: 1
+  baseTemplate: {fileID: 4900000, guid: f55054e9acddb1d4a9bd62a9669732df, type: 3}
 --- !u!114 &1822508246
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1051,6 +1052,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3193794ecac5a774aa61355a43bff013, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  name: Bela
 --- !u!61 &1822508247
 BoxCollider2D:
   m_ObjectHideFlags: 0

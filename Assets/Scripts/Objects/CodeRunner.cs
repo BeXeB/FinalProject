@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class CodeRunner : MonoBehaviour
@@ -11,14 +12,13 @@ public class CodeRunner : MonoBehaviour
         public string textValue;
         public float literalNumber;
         public bool literalBool;
-        public TokenType seeMMType;
-        public Action<object> onChange;
+        public SeeMMType seeMMType;
+        public Action<object, object> onChange;
     }
-
-
-    [SerializeField] private TextAsset codeFile;
+    
     [SerializeField] private GameObject functionHolder;
     [SerializeField] public List<ExtVariable> extVariables;
+    [SerializeField] private TextAsset baseTemplate;
 
     private List<Token> extVariableTokens = new ();
     private List<Token> extVariableTokensPrev = new ();
@@ -39,6 +39,11 @@ public class CodeRunner : MonoBehaviour
     private List<Statement> statements;
 
     private Expression callExpression;
+    
+    private string code;
+    private string codeFilePath;
+    private string codeFolderName;
+    private string codeFileName;
 
     private void Awake()
     {
@@ -54,18 +59,28 @@ public class CodeRunner : MonoBehaviour
         resolver = new Resolver();
         resolver.SetInterpreter(interpreter);
     }
+    
+    public void SetCodeFolder(string folderName)
+    {
+        codeFolderName = folderName;
+    }
+    
+    public void SetCodeFileName(string fileName)
+    {
+        codeFileName = fileName;
+    }
 
     private void ConvertExtVariables()
     {
         extVariableTokens = new List<Token>();
         foreach (var variable in extVariables)
         {
-            extVariableTokens.Add(new Token
+            var token = new Token
             {
                 type = TokenType.IDENTIFIER,
                 //Convert type to the correct type
                 literal = CheckIfNumber(variable)
-                    ? variable.seeMMType is TokenType.INT
+                    ? variable.seeMMType is SeeMMType.INT
                         ? Convert.ToInt32(variable.literalNumber)
                         : Convert.ToDecimal(variable.literalNumber)
                     : variable.literalBool,
@@ -73,7 +88,8 @@ public class CodeRunner : MonoBehaviour
                 seeMMType = variable.seeMMType,
                 line = -1,
                 startIndex = -1
-            });
+            };
+            extVariableTokens.Add(token);
         }
 
         extVariableTokensPrev = new List<Token>(extVariableTokens);
@@ -85,23 +101,36 @@ public class CodeRunner : MonoBehaviour
 
         foreach (var func in externalFunctions)
         {
-            extFunctions.Add(func.functionName, new SeeMMExternalFunction(func.arity, func.function));
+            extFunctions.Add(func.functionName, new SeeMMExternalFunction(func.arity, func.function, func.argumentTypes));
         }
     }
 
     private bool CheckIfNumber(ExtVariable variable)
     {
-        return variable.seeMMType is TokenType.INT or TokenType.FLOAT;
+        return variable.seeMMType is SeeMMType.INT or SeeMMType.FLOAT;
     }
 
     private void Start()
     {
-        CheckCode(codeFile.text);
+        CheckAndReadCodeFile();
+        CheckCode(code);
         interpreter.InterpretCode(statements);
         callExpression = new Expression.CallExpression(
             new Expression.VariableExpression(new Token { textValue = "main" }),
             new Token { type = TokenType.RIGHT_PAREN },
             new List<Expression>());
+    }
+
+    private void CheckAndReadCodeFile()
+    {
+        var path = SeeMMScriptsHelper.GetBasePath($"{codeFolderName}/") + $"{codeFileName}.txt";
+        if (!File.Exists(path))
+        {
+            File.WriteAllText(path, baseTemplate.text);
+        }
+
+        codeFilePath = path;
+        code = File.ReadAllText(path);
     }
 
     private void Update()
@@ -138,9 +167,9 @@ public class CodeRunner : MonoBehaviour
             }
             variable.literal = value;
             extVariableTokens[i] = variable;
-            extVariableTokensPrev[i] = variable;
             //handle the change
-            extVariables[i].onChange?.Invoke(value);
+            extVariables[i].onChange?.Invoke(extVariableTokensPrev[i].literal, value);
+            extVariableTokensPrev[i] = variable;
         }
 
         yield return null;//new WaitForSeconds(.1f);
@@ -152,20 +181,46 @@ public class CodeRunner : MonoBehaviour
         this.isEditorOpen = isEditorOpen;
     }
 
-    public bool RunFromEditor(string code)
+    public bool RunFromEditor(string editorCode)
     {
         interpreter.InitGlobals(extFunctions, extVariableTokens);
-        CheckCode(code);
+        CheckCode(editorCode);
         interpreter.InterpretCode(statements);
 
         try
         {
             interpreter.GetGlobals().Get(new Token { textValue = "main" });
+            SaveCode(editorCode);
             return true;
         }
         catch (RuntimeError)
         {
             return false;
         }
+    }
+
+    private void SaveCode(string editorCode)
+    {
+        File.WriteAllText(codeFilePath, editorCode);
+    }
+
+    public string GetCode()
+    {
+        return code;
+    }
+
+    public Dictionary<string, SeeMMExternalFunction> GetExtFunctions()
+    {
+        return extFunctions;
+    }
+
+    public (List<Token>, List<ExtVariable>) GetExtVariables()
+    {
+        return (extVariableTokens, extVariables);
+    }
+
+    public Dictionary<string,ICallable> GetGlobalFunctions()
+    {
+        return interpreter.GetGlobalFunctions();
     }
 }

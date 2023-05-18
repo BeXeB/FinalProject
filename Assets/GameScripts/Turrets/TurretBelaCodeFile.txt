@@ -1,0 +1,10 @@
+float speed = 100;
+
+function rotate(sped) {
+    rotation = rotation + sped * deltaTime();
+    return rotation;
+}
+
+function main() {
+    rotate(speed);
+}
