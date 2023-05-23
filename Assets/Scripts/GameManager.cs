@@ -56,15 +56,19 @@ public class GameManager : MonoBehaviour
 
     private static void Report(int line, string where, string message)
     {
-        //TODO: print to text field in UI
-        print("[line " + line + "] Error" + where + ": " + message);
+        if (CodeEditor.instance)
+        {
+            CodeEditor.instance.LogError("[line " + line + "] Error" + where + ": " + message);
+        }
         hadError = true;
     }
 
     public static void RuntimeError(RuntimeError error)
     {
-        //TODO: print to text field in UI
-        print("[" + error.token.textValue + "]" + error.Message + "\n[line " + error.token.line + "]");
+        if (CodeEditor.instance)
+        {
+            CodeEditor.instance.LogError("[" + error.token.textValue + "]" + error.Message + "\n[line " + error.token.line + "]");
+        }
         hadRuntimeError = true;
     }
 }

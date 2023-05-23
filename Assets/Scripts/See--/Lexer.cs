@@ -31,6 +31,7 @@ public class Lexer
 
     public List<Token> ScanCode(string rawCode)
     {
+        line = 1;
         tokens = new List<Token>();
         code = rawCode.ToLower();
         while (currentIndex < code.Length)

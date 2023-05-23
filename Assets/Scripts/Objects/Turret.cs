@@ -58,7 +58,7 @@ public class Turret : MonoBehaviour, IInteractable
         var extVariables = codeRunner.GetExtVariables();
         codeEditor.SetExtVariables(extVariables.Item1, extVariables.Item2);
         codeEditor.SetExtFunctions(codeRunner.GetExtFunctions());
-        codeEditor.setGlobalFunctions(codeRunner.GetGlobalFunctions());
+        codeEditor.SetGlobalFunctions(codeRunner.GetGlobalFunctions());
     }
 
     private void OnCollisionEnter2D(Collision2D collision)

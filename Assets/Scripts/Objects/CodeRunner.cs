@@ -114,6 +114,7 @@ public class CodeRunner : MonoBehaviour
     {
         CheckAndReadCodeFile();
         CheckCode(code);
+        resolver.Resolve(statements);
         interpreter.InterpretCode(statements);
         callExpression = new Expression.CallExpression(
             new Expression.VariableExpression(new Token { textValue = "main" }),
@@ -143,12 +144,11 @@ public class CodeRunner : MonoBehaviour
         StartCoroutine(RunCode());
     }
 
-    private void CheckCode(string code)
+    public void CheckCode(string code)
     {
         tokens = lexer.ScanCode(code);
         parser.SetTokens(tokens);
         statements = parser.Parse();
-        resolver.Resolve(statements);
     }
 
     private IEnumerator RunCode()
@@ -185,6 +185,7 @@ public class CodeRunner : MonoBehaviour
     {
         interpreter.InitGlobals(extFunctions, extVariableTokens);
         CheckCode(editorCode);
+        resolver.Resolve(statements);
         interpreter.InterpretCode(statements);
 
         try
@@ -222,5 +223,10 @@ public class CodeRunner : MonoBehaviour
     public Dictionary<string,ICallable> GetGlobalFunctions()
     {
         return interpreter.GetGlobalFunctions();
+    }
+    
+    public List<Token> GetTokens()
+    {
+        return tokens;
     }
 }

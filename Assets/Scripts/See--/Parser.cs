@@ -8,7 +8,7 @@ public class Parser
 
     private List<Token> tokens;
     private int current = 0;
-    private int fuctions = 0;
+    private int functions = 0;
     
     public void SetTokens(List<Token> tokens)
     {
@@ -17,22 +17,22 @@ public class Parser
 
     public List<Statement> Parse()
     {
+        current = 0;
+        functions = 0;
         List<Statement> statements = new List<Statement>();
         while (!IsAtEnd())
         {
             var declaration = Declaration();
             if (declaration is Statement.FunctionStatement)
             {
-                statements.Insert(fuctions, declaration);
-                fuctions++;
+                statements.Insert(functions, declaration);
+                functions++;
             }
             else
             {
                 statements.Add(declaration);
             }
         }
-        current = 0;
-        fuctions = 0;
         return statements;
     }
 
@@ -175,8 +175,8 @@ public class Parser
             var declaration = Declaration();
             if (declaration is Statement.FunctionStatement)
             {
-                statements.Insert(fuctions, declaration);
-                fuctions++;
+                statements.Insert(functions, declaration);
+                functions++;
             }
             else
             {
