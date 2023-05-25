@@ -11,10 +11,12 @@ public class Environment
     {
         enclosing = null;
     }
+
     public Environment(Environment enclosing)
     {
         this.enclosing = enclosing;
     }
+
     public object Get(Token name)
     {
         if (values.ContainsKey(name.textValue))
@@ -23,10 +25,12 @@ public class Environment
             values.TryGetValue(name.textValue, out type);
             return type;
         }
+
         if (enclosing != null)
         {
             return enclosing.Get(name);
         }
+
         throw new RuntimeError(name, "Undefined variable '" + name.textValue + "'.");
     }
 
@@ -39,7 +43,12 @@ public class Environment
 
     public void AssignAt(int distance, Token name, object value)
     {
-        Ancestor(distance).values[name.textValue] = value;
+        Ancestor(distance).Assign(name, value);
+    }
+
+    public void AssignAt(int distance, Token name, object value, object index)
+    {
+        Ancestor(distance).Assign(name, value, index);
     }
 
     public void Define(string name, object value)
@@ -51,6 +60,12 @@ public class Environment
     {
         if (values.ContainsKey(name.textValue))
         {
+            if (values[name.textValue] is List<object>)
+            {
+                values[name.textValue] = value;
+                return;
+            }
+            
             switch (name.seeMMType)
             {
                 case SeeMMType.INT when value is not int && value is decimal valueAsDecimal && valueAsDecimal % 1 != 0:
@@ -67,11 +82,35 @@ public class Environment
                     return;
             }
         }
+
         if (enclosing != null)
         {
             enclosing.Assign(name, value);
             return;
         }
+
+        throw new RuntimeError(name, "Undefined variable '" + name.textValue + "'.");
+    }
+
+    public void Assign(Token name, object value, object index)
+    {
+        if (values.ContainsKey(name.textValue))
+        {
+            if (values[name.textValue] is List<object> list)
+            {
+                list[Convert.ToInt32(index, CultureInfo.InvariantCulture)] = value;
+                return;
+            }
+
+            throw new RuntimeError(name, "Variable is not an array.");
+        }
+
+        if (enclosing != null)
+        {
+            enclosing.Assign(name, value, index);
+            return;
+        }
+
         throw new RuntimeError(name, "Undefined variable '" + name.textValue + "'.");
     }
 
@@ -82,6 +121,7 @@ public class Environment
         {
             environment = environment.enclosing;
         }
+
         return environment;
     }
 }

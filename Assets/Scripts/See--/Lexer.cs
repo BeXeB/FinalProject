@@ -232,6 +232,10 @@ public class Lexer
             if (!identifiers.ContainsKey(token.textValue))
             {
                 var prevTokenType = tokens[^1].type;
+                if (prevTokenType == TokenType.RIGHT_SQUAREBRACKET)
+                {
+                    prevTokenType = tokens[^3].type;
+                }
                 identifiers.Add(token.textValue, prevTokenType);
                 token.seeMMType = GetSeeMMType(prevTokenType);
             }
