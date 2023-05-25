@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -52,6 +53,17 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
     }
 
     public object VisitIntStatement(Statement.IntStatement statement)
+    {
+        Declare(statement.name);
+        if (statement.initializer != null)
+        {
+            Resolve(statement.initializer);
+        }
+        Define(statement.name);
+        return null;
+    }
+    
+    public object VisitArrayStatement(Statement.ArrayStatement statement)
     {
         Declare(statement.name);
         if (statement.initializer != null)
@@ -138,6 +150,16 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         return null;
     }
 
+    public object VisitArrayAssignmentExpression(Expression.ArrayAssignmentExpression expression)
+    {
+        foreach (var value in expression.values)
+        {
+            Resolve(value);
+        }
+        ResolveLocal(expression, expression.name);
+        return null;
+    }
+
     public object VisitBinaryExpression(Expression.BinaryExpression expression)
     {
         Resolve(expression.right);
@@ -190,6 +212,18 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         ResolveLocal(expression, expression.name);
         return null;
     }
+    
+    public object VisitArrayExpression(Expression.ArrayExpression expression)
+    {
+        if (scopes.TryPeek(out Dictionary<string, bool> scope) &&
+            scope.TryGetValue(expression.name.textValue, out bool value)
+            && value == false)
+        {
+            GameManager.Error(expression.name, "Can't read local variable in its own initializer.");
+        }
+        ResolveLocal(expression, expression.name);
+        return null;
+    }
 
     public void Resolve(List<Statement> statements)
     {
@@ -207,6 +241,14 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
     private void Resolve(Expression expression)
     {
         expression.Accept(this);
+    }
+    
+    private void Resolve(IEnumerable<Expression> expressions)
+    {
+        foreach (var expression in expressions)
+        {
+            expression.Accept(this);
+        }
     }
 
     private void ResolveLocal(Expression expr, Token name)

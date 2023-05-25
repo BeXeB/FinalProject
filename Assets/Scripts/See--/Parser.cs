@@ -78,6 +78,10 @@ public class Parser
 
     private Statement VariableDeclaration(TokenType type)
     {
+        if (Match(TokenType.LEFT_SQUAREBRACKET))
+        {
+            return ArrayDeclaration(type);
+        }
         Token name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
         Expression initializer = null;
         if (Match(TokenType.EQUAL))
@@ -98,6 +102,37 @@ public class Parser
         }
     }
 
+    private Statement ArrayDeclaration(TokenType type)
+    {
+        Consume(TokenType.RIGHT_SQUAREBRACKET, "Expect ']' after '['.");
+        Token name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
+        List<Expression> initializer = new ();
+        if (Match(TokenType.EQUAL))
+        {
+            Consume(TokenType.LEFT_BRACE, "Expect '{' after '='.");
+            initializer.Add( Expr());
+            while (Match(TokenType.COMMA))
+            {
+                initializer.Add( Expr());
+            }
+            Consume(TokenType.RIGHT_BRACE, "Expect '}' after array initializer.");
+        }
+        Consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+        // SeeMMType arrayType = SeeMMType.NONE;
+        // switch (type)
+        // {
+        //     case TokenType.INT:
+        //         arrayType = SeeMMType.INT;
+        //         break;
+        //     case TokenType.FLOAT:
+        //         arrayType = SeeMMType.FLOAT;
+        //         break;
+        //     case TokenType.BOOL:
+        //         arrayType = SeeMMType.BOOL;
+        //         break;
+        // }
+        return new Statement.ArrayStatement(name, name.seeMMType, initializer.ToArray(), initializer.Count);
+    }
 
     private Statement Statement()
     {
@@ -198,13 +233,45 @@ public class Parser
         if (Match(TokenType.EQUAL))
         {
             Token equals = Previous();
-            Expression value = Assignment();
-            if (expression is Expression.VariableExpression) 
+            
+            if (Match(TokenType.LEFT_BRACE))
             {
-                Token name = ((Expression.VariableExpression)expression).name;
-                return new Expression.AssignmentExpression(name, value);
+                if (expression is Expression.VariableExpression variableExpression)
+                {
+                    var expressions = new List<Expression>();
+                    var name = variableExpression.name;
+                    
+                    expressions.Add(Assignment());
+                    while (Match(TokenType.COMMA))
+                    {
+                        expressions.Add(Assignment());
+                    }
+
+                    if(Match(TokenType.RIGHT_BRACE))
+                        return new Expression.ArrayAssignmentExpression(name, expressions.ToArray(), name.seeMMType);
+                    Error(equals, "Expect '}' after array initializer.");
+                }
+                Error(equals, "Invalid assignment target.");
             }
-            Error(equals, "Invalid assignment target.");
+            
+            Expression value = Assignment();
+            switch (expression)
+            {
+                case Expression.VariableExpression variableExpression:
+                {
+                    Token name = variableExpression.name;
+                    return new Expression.AssignmentExpression(name, value);
+                }
+                case Expression.ArrayExpression arrayExpression:
+                {
+                    Token name = arrayExpression.name;
+                    Expression index = arrayExpression.index;
+                    return new Expression.AssignmentExpression(name, index, value);
+                }
+                default:
+                    Error(equals, "Invalid assignment target.");
+                    break;
+            }
         }
         return expression;
     }
@@ -341,7 +408,14 @@ public class Parser
         }
         if (Match(TokenType.IDENTIFIER))
         {
-            return new Expression.VariableExpression(Previous());
+            var name = Previous();
+            if (Match(TokenType.LEFT_SQUAREBRACKET))
+            {
+                Expression index = Expr();
+                Consume(TokenType.RIGHT_SQUAREBRACKET, "Expect ']' after index.");
+                return new Expression.ArrayExpression(name, index);
+            }
+            return new Expression.VariableExpression(name);
         }
         if (Match(TokenType.LEFT_PAREN))
         {

@@ -179,17 +179,66 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     public object VisitAssignmentExpression(Expression.AssignmentExpression expression)
     {
         object value = Evaluate(expression.value);
+        object index = null;
 
-        if (locals.TryGetValue(expression, out int distance))
+        if (expression.index == null)
         {
-            environment.AssignAt(distance, expression.name, value);
+            if (locals.TryGetValue(expression, out int distance))
+            {
+                environment.AssignAt(distance, expression.name, value);
+            }
+            else
+            {
+                globals.Assign(expression.name, value);
+            }
         }
         else
         {
-            globals.Assign(expression.name, value);
+            index = Evaluate(expression.index);
+            if (locals.TryGetValue(expression, out int distance))
+            {
+                environment.AssignAt(distance, expression.name, value, index);
+            }
+            else
+            {
+                globals.Assign(expression.name, value, index);
+            }
         }
-        environment.Assign(expression.name, value);
+        // environment.Assign(expression.name, value);
         return value;
+    }
+
+    public object VisitArrayAssignmentExpression(Expression.ArrayAssignmentExpression expression)
+    {
+        List<object> array = new ();
+        if (expression.values != null)
+        {
+            foreach (var expr in expression.values)
+            {
+                var value = Evaluate(expr);
+                //check if value is the same type as the array
+                switch (expression.type)
+                {
+                    case SeeMMType.INT when value is not int && value is decimal valueAsDecimal && valueAsDecimal % 1 != 0:
+                        throw new RuntimeError(expression.name, "Initializer must be an integer.");
+                    case SeeMMType.FLOAT when value is not decimal && value is not int:
+                        throw new RuntimeError(expression.name, "Initializer must be a floating point number.");
+                    case SeeMMType.BOOL when value is not bool:
+                        throw new RuntimeError(expression.name, "Initializer must be a boolean.");
+                }
+                array.Add(value);
+            }
+        }
+        if (locals.TryGetValue(expression, out int distance))
+        {
+            environment.AssignAt(distance, expression.name, array);
+        }
+        else
+        {
+            globals.Assign(expression.name, array);
+        }
+
+        return array;
     }
 
     public object VisitLiteralExpression(Expression.LiteralExpression expression)
@@ -221,6 +270,16 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     public object VisitVariableExpression(Expression.VariableExpression expression)
     {
         return LookUpVariable(expression.name, expression);
+    }
+
+    public object VisitArrayExpression(Expression.ArrayExpression expression)
+    {
+        var array = LookUpVariable(expression.name, expression);
+        if (array is not List<object> list)
+        {
+            throw new RuntimeError(expression.name, "Variable is not an array.");
+        }
+        return list[Convert.ToInt32(Evaluate(expression.index), CultureInfo.InvariantCulture)];
     }
 
     public object VisitUnaryExpression(Expression.UnaryExpression expression)
@@ -391,6 +450,31 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
             throw new RuntimeError(statement.name, "Initializer must be a boolean.");
         }
         environment.Define(statement.name.textValue, value);
+        return null;
+    }
+
+    public object VisitArrayStatement(Statement.ArrayStatement statement)
+    {
+        List<object> array = new ();
+        if (statement.initializer != null)
+        {
+            foreach (var initializer in statement.initializer)
+            {
+                var value = Evaluate(initializer);
+                //check if value is the same type as the array
+                switch (statement.type)
+                {
+                    case SeeMMType.INT when value is not int && value is decimal valueAsDecimal && valueAsDecimal % 1 != 0:
+                        throw new RuntimeError(statement.name, "Initializer must be an integer.");
+                    case SeeMMType.FLOAT when value is not decimal && value is not int:
+                        throw new RuntimeError(statement.name, "Initializer must be a floating point number.");
+                    case SeeMMType.BOOL when value is not bool:
+                        throw new RuntimeError(statement.name, "Initializer must be a boolean.");
+                }
+                array.Add(value);
+            }
+        }
+        environment.Define(statement.name.textValue, array);
         return null;
     }
 

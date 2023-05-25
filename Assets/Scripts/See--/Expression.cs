@@ -9,10 +9,12 @@ public abstract class Expression
         public T VisitBinaryExpression(BinaryExpression expression);
         public T VisitCallExpression(CallExpression expression);
         public T VisitAssignmentExpression(AssignmentExpression expression);
+        public T VisitArrayAssignmentExpression(ArrayAssignmentExpression expression);
         public T VisitLiteralExpression(LiteralExpression expression);
         public T VisitGroupingExpression(GroupingExpression expression);
         public T VisitLogicalExpression(LogicalExpression expression);
         public T VisitVariableExpression(VariableExpression expression);
+        public T VisitArrayExpression(ArrayExpression expression);
         public T VisitUnaryExpression(UnaryExpression expression);
     }
 
@@ -58,7 +60,16 @@ public abstract class Expression
         {
             this.name = name;
             this.value = value;
+            this.index = null;
         }
+        
+        public AssignmentExpression(Token name, Expression index, Expression value)
+        {
+            this.name = name;
+            this.index = index;
+            this.value = value;
+        }
+        
         public override T Accept<T>(IExpressionVisitor<T> visitor)
         {
             return visitor.VisitAssignmentExpression(this);
@@ -66,7 +77,28 @@ public abstract class Expression
 
         public readonly Token name;
         public readonly Expression value;
+        public readonly Expression index;
     }
+    
+    public class ArrayAssignmentExpression : Expression
+    {
+        public ArrayAssignmentExpression(Token name, Expression[] values, SeeMMType type)
+        {
+            this.name = name;
+            this.values = values;
+            this.type = type;
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.VisitArrayAssignmentExpression(this);
+        }
+
+        public readonly Token name;
+        public readonly SeeMMType type;
+        public readonly Expression[] values;
+    }
+    
     public class LiteralExpression : Expression
     {
         public LiteralExpression(object value)
@@ -123,6 +155,23 @@ public abstract class Expression
 
         public readonly Token name;
     }
+    
+    public class ArrayExpression : Expression
+    {
+        public ArrayExpression(Token name, Expression index)
+        {
+            this.name = name;
+            this.index = index;
+        }
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.VisitArrayExpression(this);
+        }
+
+        public readonly Token name;
+        public readonly Expression index;
+    }
+
     public class UnaryExpression : Expression
     {
         public UnaryExpression(Token op, Expression expression)
