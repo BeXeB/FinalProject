@@ -16,6 +16,7 @@ public abstract class Statement
         T VisitIntStatement(IntStatement statement);
         T VisitFloatStatement(FloatStatement statement);
         T VisitBoolStatement(BoolStatement statement);
+        T VisitArrayStatement(ArrayStatement statement);
         T VisitWhileStatement(WhileStatement statement);
     }
 
@@ -177,6 +178,26 @@ public abstract class Statement
 
         public readonly Token name;
         public readonly Expression initializer;
+    }
+    
+    public class ArrayStatement : Statement
+    {
+        public ArrayStatement(Token name, SeeMMType type, Expression[] initializer, int size)
+        {
+            this.name = name;
+            this.type = type;
+            this.initializer = initializer;
+            this.size = size;
+        }
+        public override T Accept<T>(IStatementVisitor<T> visitor)
+        {
+            return visitor.VisitArrayStatement(this);
+        }
+
+        public readonly Token name;
+        public readonly SeeMMType type;
+        public readonly Expression[] initializer;
+        public readonly int size;
     }
 
     public class WhileStatement : Statement
