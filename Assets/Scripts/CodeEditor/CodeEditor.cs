@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
 public class CodeEditor : MonoBehaviour
@@ -21,7 +23,6 @@ public class CodeEditor : MonoBehaviour
     [SerializeField] private Color identifierColor;
     [SerializeField] private Color keywordColor;
 
-    private bool isOpen = false;
     private float timer = 0f;
     private bool shouldCheck = false;
 
@@ -63,7 +64,7 @@ public class CodeEditor : MonoBehaviour
         shouldCheck = false;
     }
 
-    public void OnButtonPressed()
+    public void OnRunButtonPressed()
     {
         codeRunner.RunFromEditor(codeInputField.text);
 
@@ -75,8 +76,14 @@ public class CodeEditor : MonoBehaviour
         {
             Debug.Log("Missing Main()");
         }
+    }
 
-        isOpen = false; //TODO remove
+    public void OnCloseButtonPressed()
+    {
+        SceneManager.UnloadSceneAsync("CodeEditor");
+        var player = FindObjectOfType<PlayerInput>();
+        player.currentActionMap.Enable();
+        //SceneManager.SetActiveScene(SceneManager.GetSceneByName("CodeEditor"));
     }
 
     public void SetCodeRunner(CodeRunner codeRunner)
@@ -86,7 +93,6 @@ public class CodeEditor : MonoBehaviour
         var code = codeRunner.GetCode();
         codeText.text = code;
         codeInputField.text = code;
-        isOpen = true;
         //StartCoroutine(CheckCode());
     }
 

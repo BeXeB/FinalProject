@@ -16,6 +16,18 @@ public class Turret : MonoBehaviour, IInteractable
 
     public string name;
 
+    private Transform target;
+
+    [SerializeField] private float range = 15f;
+    [SerializeField] private float fireRate = 1f;
+    [SerializeField] private bool isSeekingTurret = false;
+    private float fireCountdown = 0f;
+
+    [SerializeField] private string playerTag = "Player";
+    [SerializeField] private float turnSpeed = 10f;
+    [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private Transform firePoint;
+
     private void Awake()
     {
         codeRunner = GetComponent<CodeRunner>();
@@ -25,6 +37,7 @@ public class Turret : MonoBehaviour, IInteractable
 
     private void Start()
     {
+        InvokeRepeating("UpdateTarget", 0f, 0.5f);
         for (var i = 0; i < codeRunner.extVariables.Count; i++)
         {
             var extVar = codeRunner.extVariables[i];
@@ -35,6 +48,61 @@ public class Turret : MonoBehaviour, IInteractable
                     Quaternion.Euler(0, 0, Convert.ToSingle(value, CultureInfo.InvariantCulture));
             };
             codeRunner.extVariables[i] = extVar;
+        }
+    }
+
+    private void UpdateTarget()
+    {
+        if (isSeekingTurret)
+        {
+            GameObject nearestEnemy = GameObject.FindGameObjectWithTag(playerTag);
+            if (nearestEnemy != null && Vector2.Distance(transform.position, nearestEnemy.transform.position) <= range)
+            {
+                target = nearestEnemy.transform;
+            }
+            else
+            {
+                target = null;
+            }
+        }
+    }
+
+    private void Update()
+    {
+        if (isSeekingTurret)
+        {
+            if (target == null)
+            {
+                return;
+            }
+            //Target Lock-on
+            /*Vector2 dir = target.position - transform.position;
+            Quaternion lookRotation = Quaternion.LookRotation(dir);
+            Vector2 rotation = Quaternion.Lerp(transform.rotation, lookRotation, Time.deltaTime * turnSpeed).eulerAngles;
+            transform.rotation = Quaternion.Euler(rotation);*/
+            float distanceX = target.position.x - transform.position.x;
+            float distanceY = target.position.y - transform.position.y;
+            float angle = Mathf.Atan2(distanceX, distanceY) * Mathf.Rad2Deg;
+
+            Quaternion endRotation = Quaternion.AngleAxis(angle, Vector3.back);
+            transform.rotation = Quaternion.Slerp(transform.rotation, endRotation, Time.deltaTime * turnSpeed);
+        }
+        if (fireCountdown <= 0f)
+        {
+            Shoot();
+            fireCountdown = 1f / fireRate;
+        }
+        fireCountdown -= Time.deltaTime;
+    }
+
+    private void Shoot()
+    {
+        GameObject bulletGO = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        Bullet bullet = bulletGO.GetComponent<Bullet>();
+        if (bullet != null)
+        {
+            bullet.ShootForward(bulletGO, transform, target, isSeekingTurret);
+            Destroy(bulletGO, 5);
         }
     }
 

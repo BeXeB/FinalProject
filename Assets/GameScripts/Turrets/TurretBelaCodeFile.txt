@@ -1,4 +1,4 @@
-float speed = 100;
+float speed = 10;
 
 function main() {
     rotate(speed);
@@ -8,6 +8,6 @@ function main() {
 }
 
 function rotate(sped) {
-    rotation = rotation +  sped * deltatime();
+    rotation = rotation + sped * deltatime();
     return rotation;
 }
