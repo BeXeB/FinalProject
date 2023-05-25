@@ -36,8 +36,10 @@ public class Print : ICallable
 
     public object Call(Interpreter interpreter, List<object> arguments)
     {
-        //TODO: Change this to the Code Editor console
-        Debug.Log(arguments[0]);
+        if (CodeEditor.instance)
+        {
+            CodeEditor.instance.LogError(arguments[0].ToString());
+        }
         return null;
     }
 
