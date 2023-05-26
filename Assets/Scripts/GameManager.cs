@@ -56,6 +56,7 @@ public class GameManager : MonoBehaviour
 
     private static void Report(int line, string where, string message)
     {
+        Debug.LogError("[line " + line + "] Error" + where + ": " + message);
         if (CodeEditor.instance)
         {
             CodeEditor.instance.LogError("[line " + line + "] Error" + where + ": " + message);
@@ -65,6 +66,7 @@ public class GameManager : MonoBehaviour
 
     public static void RuntimeError(RuntimeError error)
     {
+        Debug.LogError(error.Message + "\n[line " + error.token.line + "]");
         if (CodeEditor.instance)
         {
             CodeEditor.instance.LogError("[" + error.token.textValue + "]" + error.Message + "\n[line " + error.token.line + "]");
