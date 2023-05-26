@@ -1,6 +1,5 @@
 float speed = 10;
 
-
 function main() {
     rotate(speed);
     if(rotation > 360){
@@ -10,6 +9,5 @@ function main() {
 
 function rotate(sped) {
     rotation = rotation + sped * deltatime();
-    print(rotation);
     return rotation;
 }

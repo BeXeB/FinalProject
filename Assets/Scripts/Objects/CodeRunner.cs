@@ -198,6 +198,7 @@ public class CodeRunner : MonoBehaviour
         try
         {
             interpreter.GetGlobals().Get(new Token { textValue = "main" });
+            code = editorCode;
             SaveCode(editorCode);
             return true;
         }
