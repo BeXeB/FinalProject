@@ -68,14 +68,14 @@ public class Environment
             
             switch (name.seeMMType)
             {
-                case SeeMMType.INT when value is not int && value is decimal valueAsDecimal && valueAsDecimal % 1 != 0:
+                case SeeMMType.INT when value is not int && value is float valueAsfloat && valueAsfloat % 1 != 0:
                     throw new RuntimeError(name, "Cannot assign a non-int value to an int variable.");
-                case SeeMMType.INT when value is int || value is decimal valueAsDecimal && valueAsDecimal % 1 == 0:
+                case SeeMMType.INT when value is int || value is float valueAsfloat && valueAsfloat % 1 == 0:
                     values[name.textValue] = Convert.ToInt32(value, CultureInfo.InvariantCulture);
                     return;
                 case SeeMMType.BOOL when value is not bool:
                     throw new RuntimeError(name, "Cannot assign a non-bool value to a bool variable.");
-                case SeeMMType.FLOAT when value is not decimal && value is not int:
+                case SeeMMType.FLOAT when value is not float && value is not int:
                     throw new RuntimeError(name, "Cannot assign a non-floating point value to a float variable.");
                 default:
                     values[name.textValue] = value;

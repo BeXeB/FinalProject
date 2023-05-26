@@ -18,7 +18,7 @@ public class Clock : ICallable
 
     public object Call(Interpreter interpreter, List<object> arguments)
     {
-        return Convert.ToDecimal(Time.deltaTime);
+        return Convert.ToSingle(Time.deltaTime);
     }
 
     public List<SeeMMType> GetArgumentTypes()

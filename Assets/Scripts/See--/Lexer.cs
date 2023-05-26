@@ -202,7 +202,7 @@ public class Lexer
             }
         }
         AddToken(TokenType.NUMBER, 
-            Convert.ToDecimal(
+            Convert.ToSingle(
                 code.Substring(startIndex, currentIndex - startIndex), 
                 System.Globalization.CultureInfo.InvariantCulture));
     }

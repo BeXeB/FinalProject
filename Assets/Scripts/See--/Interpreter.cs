@@ -107,33 +107,33 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
                 return IsEqual(left, right);
             case TokenType.GREATER:
                 CheckNumberOperands(left, right, expression.op);
-                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) > Convert.ToDecimal(right, CultureInfo.InvariantCulture);
+                return Convert.ToSingle(left, CultureInfo.InvariantCulture) > Convert.ToSingle(right, CultureInfo.InvariantCulture);
             case TokenType.GREATER_EQUAL:
                 CheckNumberOperands(left, right, expression.op);
-                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) >= Convert.ToDecimal(right, CultureInfo.InvariantCulture);
+                return Convert.ToSingle(left, CultureInfo.InvariantCulture) >= Convert.ToSingle(right, CultureInfo.InvariantCulture);
             case TokenType.LESS:
                 CheckNumberOperands(left, right, expression.op);
-                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) < Convert.ToDecimal(right, CultureInfo.InvariantCulture);
+                return Convert.ToSingle(left, CultureInfo.InvariantCulture) < Convert.ToSingle(right, CultureInfo.InvariantCulture);
             case TokenType.LESS_EQUAL:
                 CheckNumberOperands(left, right, expression.op);
-                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) <= Convert.ToDecimal(right, CultureInfo.InvariantCulture);
+                return Convert.ToSingle(left, CultureInfo.InvariantCulture) <= Convert.ToSingle(right, CultureInfo.InvariantCulture);
             case TokenType.MINUS:
                 CheckNumberOperands(left, right, expression.op);
                 if (CheckIntegerOperands(left, right))
                 {
                     return Convert.ToInt32(left, CultureInfo.InvariantCulture) - Convert.ToInt32(right, CultureInfo.InvariantCulture);
                 }
-                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) - Convert.ToDecimal(right, CultureInfo.InvariantCulture);
+                return Convert.ToSingle(left, CultureInfo.InvariantCulture) - Convert.ToSingle(right, CultureInfo.InvariantCulture);
             case TokenType.PLUS:
                 CheckNumberOperands(left, right, expression.op);
                 if (CheckIntegerOperands(left, right))
                 {
                     return Convert.ToInt32(left, CultureInfo.InvariantCulture) + Convert.ToInt32(right, CultureInfo.InvariantCulture);
                 }
-                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) + Convert.ToDecimal(right, CultureInfo.InvariantCulture);
+                return Convert.ToSingle(left, CultureInfo.InvariantCulture) + Convert.ToSingle(right, CultureInfo.InvariantCulture);
             case TokenType.SLASH:
                 CheckNumberOperands(left, right, expression.op);
-                if (Convert.ToDecimal(right, CultureInfo.InvariantCulture) == 0)
+                if (Convert.ToSingle(right, CultureInfo.InvariantCulture) == 0)
                 {
                     throw new RuntimeError(expression.op, "Division by zero.");
                 }
@@ -141,21 +141,21 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
                 {
                     return Convert.ToInt32(left, CultureInfo.InvariantCulture) / Convert.ToInt32(right, CultureInfo.InvariantCulture);
                 }
-                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) / Convert.ToDecimal(right, CultureInfo.InvariantCulture);
+                return Convert.ToSingle(left, CultureInfo.InvariantCulture) / Convert.ToSingle(right, CultureInfo.InvariantCulture);
             case TokenType.STAR:
                 CheckNumberOperands(left, right, expression.op);
                 if (CheckIntegerOperands(left, right))
                 {
                     return Convert.ToInt32(left, CultureInfo.InvariantCulture) * Convert.ToInt32(right, CultureInfo.InvariantCulture);
                 }
-                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) * Convert.ToDecimal(right, CultureInfo.InvariantCulture);
+                return Convert.ToSingle(left, CultureInfo.InvariantCulture) * Convert.ToSingle(right, CultureInfo.InvariantCulture);
             case TokenType.MOD:
                 CheckNumberOperands(left, right, expression.op);
                 if (CheckIntegerOperands(left, right))
                 {
                     return Convert.ToInt32(left, CultureInfo.InvariantCulture) % Convert.ToInt32(right, CultureInfo.InvariantCulture);
                 }
-                return Convert.ToDecimal(left, CultureInfo.InvariantCulture) % Convert.ToDecimal(right, CultureInfo.InvariantCulture);
+                return Convert.ToSingle(left, CultureInfo.InvariantCulture) % Convert.ToSingle(right, CultureInfo.InvariantCulture);
         }
         return null;
     }
@@ -224,9 +224,9 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
                 //check if value is the same type as the array
                 switch (expression.type)
                 {
-                    case SeeMMType.INT when value is not int && value is decimal valueAsDecimal && valueAsDecimal % 1 != 0:
+                    case SeeMMType.INT when value is not int && value is float valueAsfloat && valueAsfloat % 1 != 0:
                         throw new RuntimeError(expression.name, "Initializer must be an integer.");
-                    case SeeMMType.FLOAT when value is not decimal && value is not int:
+                    case SeeMMType.FLOAT when value is not float && value is not int:
                         throw new RuntimeError(expression.name, "Initializer must be a floating point number.");
                     case SeeMMType.BOOL when value is not bool:
                         throw new RuntimeError(expression.name, "Initializer must be a boolean.");
@@ -285,7 +285,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
             throw new RuntimeError(expression.name, "Variable is not an array.");
         }
         var index = Evaluate(expression.index);
-        if (index is not int && !(index is decimal indexAsDecimal && indexAsDecimal % 1 == 0))
+        if (index is not int && !(index is float indexAsfloat && indexAsfloat % 1 == 0))
         {
             throw new RuntimeError(expression.name, "Index must be an integer.");
         }
@@ -309,7 +309,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
                 return !IsTruthy(right);
             case TokenType.MINUS:
                 CheckNumberOperand(right, expression.op);
-                return -Convert.ToDecimal(right);
+                return -Convert.ToSingle(right);
         }
         return null;
     }
@@ -317,18 +317,18 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     private bool CheckIntegerOperands(object left, object right)
     {
         return 
-            (left is int || left is decimal leftAsDecimal && leftAsDecimal % 1 == 0) && 
-            (right is int || right is decimal rightAsDecimal && rightAsDecimal % 1 == 0);
+            (left is int || left is float leftAsfloat && leftAsfloat % 1 == 0) && 
+            (right is int || right is float rightAsfloat && rightAsfloat % 1 == 0);
     }
 
     private void CheckNumberOperand(object operand, Token op)
     {
-        if (operand is decimal or int) return;
+        if (operand is float or int) return;
         throw new RuntimeError(op, "Operand must be a number.");
     }
     private void CheckNumberOperands(object left, object right,Token op)
     {
-        if (left is decimal or int && right is decimal or int) return;
+        if (left is float or int && right is float or int) return;
         throw new RuntimeError(op, "Operands must be numbers.");
     }
     
@@ -431,7 +431,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         {
             value = Evaluate(statement.initializer);
         }
-        if (value is not int && value is decimal leftAsDecimal && leftAsDecimal % 1 != 0)
+        if (value is not int && value is float leftAsfloat && leftAsfloat % 1 != 0)
         {
             throw new RuntimeError(statement.name, "Initializer must be an integer.");
         }
@@ -447,7 +447,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         {
             value = Evaluate(statement.initializer);
         }
-        if (value is not decimal)
+        if (value is not float)
         {
             throw new RuntimeError(statement.name, "Initializer must be a floating point number.");
         }
@@ -481,9 +481,9 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
                 //check if value is the same type as the array
                 switch (statement.type)
                 {
-                    case SeeMMType.INT when value is not int && value is decimal valueAsDecimal && valueAsDecimal % 1 != 0:
+                    case SeeMMType.INT when value is not int && value is float valueAsfloat && valueAsfloat % 1 != 0:
                         throw new RuntimeError(statement.name, "Initializer must be an integer.");
-                    case SeeMMType.FLOAT when value is not decimal && value is not int:
+                    case SeeMMType.FLOAT when value is not float && value is not int:
                         throw new RuntimeError(statement.name, "Initializer must be a floating point number.");
                     case SeeMMType.BOOL when value is not bool:
                         throw new RuntimeError(statement.name, "Initializer must be a boolean.");

@@ -10,7 +10,7 @@ public class TestFunction : ExternalFunction
     {
         function = (List<object> args) =>
         {
-            return Convert.ToDecimal(args[0], CultureInfo.InvariantCulture) + Convert.ToDecimal(args[1], CultureInfo.InvariantCulture);
+            return Convert.ToSingle(args[0], CultureInfo.InvariantCulture) + Convert.ToSingle(args[1], CultureInfo.InvariantCulture);
         };
         argumentTypes = new List<SeeMMType> {SeeMMType.FLOAT, SeeMMType.FLOAT};
     }

@@ -83,7 +83,7 @@ public class CodeRunner : MonoBehaviour
                 literal = CheckIfNumber(variable)
                     ? variable.seeMMType is SeeMMType.INT
                         ? Convert.ToInt32(variable.literalNumber)
-                        : Convert.ToDecimal(variable.literalNumber)
+                        : Convert.ToSingle(variable.literalNumber)
                     : variable.literalBool,
                 textValue = variable.textValue,
                 seeMMType = variable.seeMMType,
@@ -216,7 +216,7 @@ public class CodeRunner : MonoBehaviour
                 object newValue = extToken.seeMMType switch
                 {
                     SeeMMType.INT => Convert.ToInt32(extToken.literal, CultureInfo.InvariantCulture),
-                    SeeMMType.FLOAT => Convert.ToDecimal(extToken.literal, CultureInfo.InvariantCulture),
+                    SeeMMType.FLOAT => Convert.ToSingle(extToken.literal, CultureInfo.InvariantCulture),
                     SeeMMType.BOOL => Convert.ToBoolean(extToken.literal, CultureInfo.InvariantCulture),
                     _ => throw new ArgumentOutOfRangeException()
                 };
