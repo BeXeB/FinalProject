@@ -279,7 +279,19 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         {
             throw new RuntimeError(expression.name, "Variable is not an array.");
         }
-        return list[Convert.ToInt32(Evaluate(expression.index), CultureInfo.InvariantCulture)];
+        var index = Evaluate(expression.index);
+        if (index is not int && !(index is decimal indexAsDecimal && indexAsDecimal % 1 == 0))
+        {
+            throw new RuntimeError(expression.name, "Index must be an integer.");
+        }
+
+        var intIndex = Convert.ToInt32(index, CultureInfo.InvariantCulture);
+        
+        if (intIndex < 0 || intIndex >= list.Count)
+        {
+            throw new RuntimeError(expression.name, "Index out of bounds.");
+        }
+        return list[intIndex];
     }
 
     public object VisitUnaryExpression(Expression.UnaryExpression expression)
