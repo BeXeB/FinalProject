@@ -7,7 +7,6 @@ using UnityEngine.InputSystem;
 
 public class Turret : MonoBehaviour, IInteractable
 {
-
     private CodeRunner codeRunner;
 
     private GameObject player;
@@ -38,17 +37,17 @@ public class Turret : MonoBehaviour, IInteractable
     private void Start()
     {
         InvokeRepeating("UpdateTarget", 0f, 0.5f);
-        for (var i = 0; i < codeRunner.extVariables.Count; i++)
-        {
-            var extVar = codeRunner.extVariables[i];
-            if (extVar.textValue != "rotation") continue;
-            extVar.onChange += (previousValue, value) =>
-            {
-                transform.rotation =
-                    Quaternion.Euler(0, 0, Convert.ToSingle(value, CultureInfo.InvariantCulture));
-            };
-            codeRunner.extVariables[i] = extVar;
-        }
+        // for (var i = 0; i < codeRunner.extVariables.Count; i++)
+        // {
+        //     var extVar = codeRunner.extVariables[i];
+        //     if (extVar.textValue != "rotation") continue;
+        //     extVar.onChange += (previousValue, value) =>
+        //     {
+        //         transform.rotation =
+        //             Quaternion.Euler(0, 0, Convert.ToSingle(value, CultureInfo.InvariantCulture));
+        //     };
+        //     codeRunner.extVariables[i] = extVar;
+        // }
     }
 
     private void UpdateTarget()
@@ -75,23 +74,23 @@ public class Turret : MonoBehaviour, IInteractable
             {
                 return;
             }
-            //Target Lock-on
-            /*Vector2 dir = target.position - transform.position;
-            Quaternion lookRotation = Quaternion.LookRotation(dir);
-            Vector2 rotation = Quaternion.Lerp(transform.rotation, lookRotation, Time.deltaTime * turnSpeed).eulerAngles;
-            transform.rotation = Quaternion.Euler(rotation);*/
+
             float distanceX = target.position.x - transform.position.x;
             float distanceY = target.position.y - transform.position.y;
             float angle = Mathf.Atan2(distanceX, distanceY) * Mathf.Rad2Deg;
 
             Quaternion endRotation = Quaternion.AngleAxis(angle, Vector3.back);
             transform.rotation = Quaternion.Slerp(transform.rotation, endRotation, Time.deltaTime * turnSpeed);
+            codeRunner.UpdateExternalVariable(new Token
+                { textValue = "rotation", literal = transform.rotation.eulerAngles.z, seeMMType = SeeMMType.FLOAT });
         }
+
         if (fireCountdown <= 0f)
         {
-            Shoot();
+            //Shoot();
             fireCountdown = 1f / fireRate;
         }
+
         fireCountdown -= Time.deltaTime;
     }
 
@@ -113,7 +112,7 @@ public class Turret : MonoBehaviour, IInteractable
             StartCoroutine(LoadEditor());
         }
     }
-    
+
     private IEnumerator LoadEditor()
     {
         var sceneLoadOp = SceneManager.LoadSceneAsync("CodeEditor", LoadSceneMode.Additive);

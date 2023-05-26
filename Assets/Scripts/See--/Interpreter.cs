@@ -15,7 +15,12 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     {
         InitGlobals(externalFunctions, externalVariables);
     }
-    
+
+    public void UpdateExternalVariable(Token name, object value)
+    {
+        globals.Assign(name, value);
+    }
+
     public void InitGlobals(Dictionary<string,SeeMMExternalFunction> externalFunctions = null, List<Token> externalVariables = null)
     {
         globals = new Environment();

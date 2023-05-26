@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using UnityEngine;
 
@@ -138,24 +139,15 @@ public class CodeRunner : MonoBehaviour
     {
         if (!shouldRun || isEditorOpen)
         {
+            CheckChangedVariables();
             return;
         }
 
         StartCoroutine(RunCode());
     }
 
-    public void CheckCode(string code)
+    private void CheckChangedVariables()
     {
-        tokens = lexer.ScanCode(code);
-        parser.SetTokens(tokens);
-        statements = parser.Parse();
-    }
-
-    private IEnumerator RunCode()
-    {
-        shouldRun = false;
-        interpreter.Evaluate(callExpression);
-        
         for (var i = 0; i < extVariableTokens.Count; i++)
         {
             var variable = extVariableTokens[i];
@@ -171,6 +163,21 @@ public class CodeRunner : MonoBehaviour
             extVariables[i].onChange?.Invoke(extVariableTokensPrev[i].literal, value);
             extVariableTokensPrev[i] = variable;
         }
+    }
+
+    public void CheckCode(string code)
+    {
+        tokens = lexer.ScanCode(code);
+        parser.SetTokens(tokens);
+        statements = parser.Parse();
+    }
+
+    private IEnumerator RunCode()
+    {
+        shouldRun = false;
+        interpreter.Evaluate(callExpression);
+        
+        CheckChangedVariables();
 
         yield return null;//new WaitForSeconds(.1f);
         shouldRun = true;
@@ -197,6 +204,24 @@ public class CodeRunner : MonoBehaviour
         catch (RuntimeError)
         {
             return false;
+        }
+    }
+
+    public void UpdateExternalVariable(Token extToken)
+    {
+        foreach (var token in extVariableTokens)
+        {
+            if (token.textValue == extToken.textValue)
+            {
+                object newValue = extToken.seeMMType switch
+                {
+                    SeeMMType.INT => Convert.ToInt32(extToken.literal, CultureInfo.InvariantCulture),
+                    SeeMMType.FLOAT => Convert.ToDecimal(extToken.literal, CultureInfo.InvariantCulture),
+                    SeeMMType.BOOL => Convert.ToBoolean(extToken.literal, CultureInfo.InvariantCulture),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+                interpreter.UpdateExternalVariable(token, newValue);
+            }
         }
     }
 

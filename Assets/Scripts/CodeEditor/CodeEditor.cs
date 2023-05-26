@@ -224,6 +224,10 @@ public class CodeEditor : MonoBehaviour
     
     public void LogError(string error)
     {
+        if (editorConsole == null || error == null)
+        {
+            return;
+        }
         editorConsole.Log(error);
     }
 }
