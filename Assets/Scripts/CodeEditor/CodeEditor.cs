@@ -26,6 +26,8 @@ public class CodeEditor : MonoBehaviour
     private float timer = 0f;
     private bool shouldCheck = false;
 
+    private bool isLoadedIn = false;
+
     //TODO set to false when closing editor
     private CodeEditor()
     {
@@ -38,6 +40,12 @@ public class CodeEditor : MonoBehaviour
     private void OnEnable()
     {
         codeInputField.onValueChanged.AddListener(delegate { OnCodeChanged(); });
+        codeInputField.onSelect.AddListener(delegate { OnCodeInputSelected(); });
+    }
+
+    private void OnCodeInputSelected()
+    {
+        codeRunner.SetIsEditorOpen(true);
     }
 
     private void OnCodeChanged()
@@ -80,16 +88,18 @@ public class CodeEditor : MonoBehaviour
 
     public void OnCloseButtonPressed()
     {
+        isLoadedIn = false;
+        codeRunner.SetIsEditorOpen(false);
         SceneManager.UnloadSceneAsync("CodeEditor");
         var player = FindObjectOfType<PlayerInput>();
         player.currentActionMap.Enable();
-        //SceneManager.SetActiveScene(SceneManager.GetSceneByName("CodeEditor"));
     }
 
     public void SetCodeRunner(CodeRunner codeRunner)
     {
         this.codeRunner = codeRunner;
         this.codeRunner.SetIsEditorOpen(true);
+        isLoadedIn = true;
         var code = codeRunner.GetCode();
         codeText.text = code;
         codeInputField.text = code;
@@ -224,7 +234,7 @@ public class CodeEditor : MonoBehaviour
     
     public void LogError(string error)
     {
-        if (editorConsole == null || error == null)
+        if (!isLoadedIn || editorConsole == null || error == null)
         {
             return;
         }
