@@ -10,5 +10,6 @@ function main() {
 
 function rotate(sped) {
     rotation = rotation + sped * deltatime();
+    print(rotation);
     return rotation;
 }
