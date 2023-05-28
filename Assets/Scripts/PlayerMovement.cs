@@ -7,7 +7,7 @@ public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private Rigidbody2D rigidBody;
-    [SerializeField] private Turret turret;//TODO: Remove this
+    private GameObject turret;//TODO: Remove this
 
     private Vector2 movement;
 
@@ -23,6 +23,11 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnInteract(InputValue inputValue)
     {
-        turret.Interact();
+        turret.GetComponent<Turret>().Interact();
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        turret = collision.gameObject;
     }
 }
