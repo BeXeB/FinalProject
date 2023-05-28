@@ -260,9 +260,12 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     {
         object left = Evaluate(expression.left);
 
-        if ((expression.op.type == TokenType.OR) && (IsTruthy(left))) 
+        if (expression.op.type == TokenType.OR) 
         {
-            return left;
+            if (IsTruthy(left))
+            {
+                return left;
+            }
         }
         else if (!IsTruthy(left)) 
         {

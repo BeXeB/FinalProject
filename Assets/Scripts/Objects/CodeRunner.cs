@@ -237,13 +237,33 @@ public class CodeRunner : MonoBehaviour
         {
             if (token.textValue == extToken.textValue)
             {
-                object newValue = extToken.seeMMType switch
+                object newValue;
+                if (extToken.literal is List<object> list)
                 {
-                    SeeMMType.INT => Convert.ToInt32(extToken.literal, CultureInfo.InvariantCulture),
-                    SeeMMType.FLOAT => Convert.ToSingle(extToken.literal, CultureInfo.InvariantCulture),
-                    SeeMMType.BOOL => Convert.ToBoolean(extToken.literal, CultureInfo.InvariantCulture),
-                    _ => throw new ArgumentOutOfRangeException()
-                };
+                    var temp = new List<object>();
+                    foreach (var value in list)
+                    {
+                        temp.Add(extToken.seeMMType switch
+                        {
+                            SeeMMType.INT => Convert.ToInt32(value, CultureInfo.InvariantCulture),
+                            SeeMMType.FLOAT => Convert.ToSingle(value, CultureInfo.InvariantCulture),
+                            SeeMMType.BOOL => Convert.ToBoolean(value, CultureInfo.InvariantCulture),
+                            _ => throw new ArgumentOutOfRangeException()
+                        });
+                    }
+                    newValue = temp;
+                }
+                else
+                {
+                    newValue = extToken.seeMMType switch
+                    {
+                        SeeMMType.INT => Convert.ToInt32(extToken.literal, CultureInfo.InvariantCulture),
+                        SeeMMType.FLOAT => Convert.ToSingle(extToken.literal, CultureInfo.InvariantCulture),
+                        SeeMMType.BOOL => Convert.ToBoolean(extToken.literal, CultureInfo.InvariantCulture),
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+                }
+
                 interpreter.UpdateExternalVariable(token, newValue);
             }
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -23,6 +24,7 @@ public class Turret : MonoBehaviour, IInteractable
     private float fireCountdown = 0f;
 
     [SerializeField] private string playerTag = "Player";
+    [SerializeField] private string enemyTag = "Enemy";
     [SerializeField] private float turnSpeed = 10f;
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private Transform firePoint;
@@ -36,33 +38,67 @@ public class Turret : MonoBehaviour, IInteractable
 
     private void Start()
     {
-        InvokeRepeating("UpdateTarget", 0f, 0.5f);
-        // for (var i = 0; i < codeRunner.extVariables.Count; i++)
-        // {
-        //     var extVar = codeRunner.extVariables[i];
-        //     if (extVar.textValue != "rotation") continue;
-        //     extVar.onChange += (previousValue, value) =>
-        //     {
-        //         transform.rotation =
-        //             Quaternion.Euler(0, 0, Convert.ToSingle(value, CultureInfo.InvariantCulture));
-        //     };
-        //     codeRunner.extVariables[i] = extVar;
-        // }
+        InvokeRepeating(nameof(UpdatePlayerPos), 0f, 0.5f);
+        InvokeRepeating(nameof(FindEnemies), 0f, 0.5f);
+        for (var i = 0; i < codeRunner.extVariables.Count; i++)
+        {
+            var extVar = codeRunner.extVariables[i];
+            if (extVar.textValue != "rotation") continue;
+            extVar.onChange += (previousValue, value) =>
+            {
+                transform.rotation =
+                    Quaternion.Euler(0, 0, Convert.ToSingle(value, CultureInfo.InvariantCulture));
+            };
+            codeRunner.extVariables[i] = extVar;
+        }
     }
 
-    private void UpdateTarget()
+    private void UpdatePlayerPos()
     {
         if (isSeekingTurret)
         {
-            GameObject nearestEnemy = GameObject.FindGameObjectWithTag(playerTag);
-            if (nearestEnemy != null && Vector2.Distance(transform.position, nearestEnemy.transform.position) <= range)
+            GameObject playerGO = GameObject.FindGameObjectWithTag(playerTag);
+            if (playerGO != null && Vector2.Distance(transform.position, playerGO.transform.position) <= range)
             {
-                target = nearestEnemy.transform;
+                target = playerGO.transform;
+                List<object> playerCoords = new();
+                playerCoords.Add(target.position.x);
+                playerCoords.Add(target.position.y);
+                codeRunner.UpdateExternalVariable(new Token
+                { textValue = "playerCoords", literal = playerCoords, seeMMType = SeeMMType.FLOAT });
             }
             else
             {
                 target = null;
             }
+        }
+    }
+
+    private void FindEnemies()
+    {
+        if (isSeekingTurret)
+        {
+            GameObject[] enemies = GameObject.FindGameObjectsWithTag(enemyTag);
+            List<object> enemyCoordsX = new();
+            List<object> enemyCoordsY = new();
+            foreach (var enemy in enemies)
+            {
+                if (enemy != null && enemy != gameObject && Vector2.Distance(transform.position, enemy.transform.position) <= range)
+                {
+                    target = enemy.transform;
+                    enemyCoordsX.Add(target.position.x);
+                    enemyCoordsY.Add(target.position.y);
+                }
+                else
+                {
+                    target = null;
+                }
+            }
+            codeRunner.UpdateExternalVariable(new Token
+            { textValue = "targetCoordsX", literal = enemyCoordsX, seeMMType = SeeMMType.FLOAT });
+            codeRunner.UpdateExternalVariable(new Token
+            { textValue = "targetCoordsY", literal = enemyCoordsY, seeMMType = SeeMMType.FLOAT });
+
         }
     }
 
@@ -74,15 +110,6 @@ public class Turret : MonoBehaviour, IInteractable
             {
                 return;
             }
-
-            float distanceX = target.position.x - transform.position.x;
-            float distanceY = target.position.y - transform.position.y;
-            float angle = Mathf.Atan2(distanceX, distanceY) * Mathf.Rad2Deg;
-
-            Quaternion endRotation = Quaternion.AngleAxis(angle, Vector3.back);
-            transform.rotation = Quaternion.Slerp(transform.rotation, endRotation, Time.deltaTime * turnSpeed);
-            codeRunner.UpdateExternalVariable(new Token
-                { textValue = "rotation", literal = transform.rotation.eulerAngles.z, seeMMType = SeeMMType.FLOAT });
         }
 
         if (fireCountdown <= 0f)
@@ -92,6 +119,17 @@ public class Turret : MonoBehaviour, IInteractable
         }
 
         fireCountdown -= Time.deltaTime;
+    }
+
+    public void SetAim(float coordX, float coordY)
+    {
+        float distanceX = coordX - transform.position.x;
+        float distanceY = coordY - transform.position.y;
+        float angle = Mathf.Atan2(distanceX, distanceY) * Mathf.Rad2Deg;
+        Quaternion endRotation = Quaternion.AngleAxis(angle, Vector3.back);
+        transform.rotation = Quaternion.Slerp(transform.rotation, endRotation, Time.deltaTime * turnSpeed);
+        codeRunner.UpdateExternalVariable(new Token
+        { textValue = "rotation", literal = transform.rotation.eulerAngles.z, seeMMType = SeeMMType.FLOAT });
     }
 
     private void Shoot()

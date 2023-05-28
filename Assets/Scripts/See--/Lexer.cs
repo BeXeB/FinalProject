@@ -33,7 +33,7 @@ public class Lexer
     {
         line = 1;
         tokens = new List<Token>();
-        code = rawCode.ToLower();
+        code = rawCode;
         while (currentIndex < code.Length)
         {
             startIndex = currentIndex;

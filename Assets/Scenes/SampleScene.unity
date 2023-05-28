@@ -861,7 +861,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 5
   rigidBody: {fileID: 634598419}
-  turret: {fileID: 1822508246}
 --- !u!4 &634598421
 Transform:
   m_ObjectHideFlags: 0
@@ -967,7 +966,7 @@ GameObject:
   - component: {fileID: 666207836}
   m_Layer: 0
   m_Name: Turret (1)
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1034,6 +1033,7 @@ MonoBehaviour:
   fireRate: 1
   isSeekingTurret: 1
   playerTag: Player
+  enemyTag: Enemy
   turnSpeed: 1
   bulletPrefab: {fileID: 8174757834348150066, guid: cc622cd69d199a843bbaf6785a1eca2c, type: 3}
   firePoint: {fileID: 1305412460}
@@ -1051,11 +1051,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   functionHolder: {fileID: 1187238871}
   extVariables:
-  - textValue: 
+  - textValue: playerCoords
     literalNumber: 0
     literalBool: 0
-    seeMMType: 0
-    isArray: 0
+    seeMMType: 1
+    isArray: 1
+    arrayNumericValues: []
+    arrayBoolValues: 
+  - textValue: targetCoordsX
+    literalNumber: 0
+    literalBool: 0
+    seeMMType: 1
+    isArray: 1
+    arrayNumericValues: []
+    arrayBoolValues: 
+  - textValue: targetCoordsY
+    literalNumber: 0
+    literalBool: 0
+    seeMMType: 1
+    isArray: 1
     arrayNumericValues: []
     arrayBoolValues: 
   baseTemplate: {fileID: 4900000, guid: f55054e9acddb1d4a9bd62a9669732df, type: 3}
@@ -1116,7 +1130,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1187238873}
-  - component: {fileID: 1187238872}
+  - component: {fileID: 1187238874}
   m_Layer: 0
   m_Name: Functions
   m_TagString: Untagged
@@ -1124,21 +1138,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1187238872
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1187238871}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a2735132972dd54f8be91e77d1ddb03, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  functionName: test
-  arity: 2
-  argumentTypes: 
 --- !u!4 &1187238873
 Transform:
   m_ObjectHideFlags: 0
@@ -1154,6 +1153,21 @@ Transform:
   m_Father: {fileID: 666207839}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1187238874
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1187238871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fd9a5d04e8de834f9a93965e6704e32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  functionName: SetAim
+  arity: 2
+  argumentTypes: 0100000001000000
 --- !u!1 &1305412459
 GameObject:
   m_ObjectHideFlags: 0
@@ -1397,7 +1411,7 @@ GameObject:
   - component: {fileID: 1822508247}
   m_Layer: 0
   m_Name: Turret
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1433,31 +1447,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   functionHolder: {fileID: 110175509}
   extVariables:
-  - textValue: c
-    literalNumber: 3.4
-    literalBool: 0
-    seeMMType: 0
-    isArray: 0
-    arrayNumericValues: []
-    arrayBoolValues: 
   - textValue: rotation
     literalNumber: 0
     literalBool: 0
     seeMMType: 1
     isArray: 0
     arrayNumericValues: []
-    arrayBoolValues: 
-  - textValue: floatarray
-    literalNumber: 0
-    literalBool: 0
-    seeMMType: 1
-    isArray: 1
-    arrayNumericValues:
-    - 1
-    - 2
-    - 3
-    - 4.5
-    - 123.123
     arrayBoolValues: 
   baseTemplate: {fileID: 4900000, guid: f55054e9acddb1d4a9bd62a9669732df, type: 3}
 --- !u!114 &1822508246
@@ -1477,6 +1472,7 @@ MonoBehaviour:
   fireRate: 1
   isSeekingTurret: 0
   playerTag: Player
+  enemyTag: Enemy
   turnSpeed: 10
   bulletPrefab: {fileID: 8174757834348150066, guid: cc622cd69d199a843bbaf6785a1eca2c, type: 3}
   firePoint: {fileID: 781463898}

@@ -4,12 +4,10 @@ function main() {
     rotate(speed);
     if(rotation > 360){
         rotation = 0;
-    }
-    floatArray = { rotation, rotation+1, rotation+10 };
+    }
 }
 
 function rotate(sped) {
     rotation = rotation + sped * deltatime();
-    print(rotation);
     return rotation;
 }

@@ -161,8 +161,6 @@ public class CodeEditor : MonoBehaviour
             var extVariable = extVariables[i];
             sb.Append(MakeVariableString(variable, extVariable));
             sb.Append("\n");
-
-            // sb.Append($"{variable.seeMMType.ToString().ToLower()} {variable.textValue}: {variable.literal}\n");
             
             extVariable.onChange += (previousValue, value) =>
             {
@@ -170,10 +168,8 @@ public class CodeEditor : MonoBehaviour
                 sb.Append(extStuffText.text);
                 var textToReplace =
                     MakeVariableString(variable, extVariable, false, previousValue);
-                    // $"{extVariable.seeMMType.ToString().ToLower()} {extVariable.textValue}: {previousValue}";
                 var textToReplaceWith =
                     MakeVariableString(variable, extVariable, false, value);
-                    // $"{extVariable.seeMMType.ToString().ToLower()} {extVariable.textValue}: {value}";
                 sb.Replace(textToReplace, textToReplaceWith);
                 extStuffText.text = sb.ToString();
             };
@@ -200,14 +196,17 @@ public class CodeEditor : MonoBehaviour
             sb.Append("{");
             foreach (var value in list)
             {
-                sb.Append($"{value}, ");
+                sb.Append($"\n  {value}, ");
             }
-            sb.Remove(sb.Length - 2, 2);
-            sb.Append("}");
+            if (list.Count > 0)
+            {
+                sb.Remove(sb.Length - 4, 4);
+            }
+            sb.Append("\n}");
         }
         else
         {
-            sb.Append($"{varValue}");
+            sb.Append($"\n  {varValue}");
         }
 
         return sb.ToString();
