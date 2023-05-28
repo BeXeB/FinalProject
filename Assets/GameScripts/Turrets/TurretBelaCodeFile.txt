@@ -1,10 +1,11 @@
-float speed = 10;
+float speed = 100;
 
 function main() {
     rotate(speed);
     if(rotation > 360){
         rotation = 0;
     }
+    floatArray = { rotation, rotation+1, rotation+10 };
 }
 
 function rotate(sped) {
