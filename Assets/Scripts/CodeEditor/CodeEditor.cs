@@ -158,16 +158,22 @@ public class CodeEditor : MonoBehaviour
         for (var i = 0; i < codeRunnerExtVariables.Count; i++)
         {
             var variable = codeRunnerExtVariables[i];
-            sb.Append($"{variable.seeMMType.ToString().ToLower()} {variable.textValue}: {variable.literal}\n");
             var extVariable = extVariables[i];
+            sb.Append(MakeVariableString(variable, extVariable));
+            sb.Append("\n");
+
+            // sb.Append($"{variable.seeMMType.ToString().ToLower()} {variable.textValue}: {variable.literal}\n");
+            
             extVariable.onChange += (previousValue, value) =>
             {
                 StringBuilder sb = new StringBuilder();
                 sb.Append(extStuffText.text);
                 var textToReplace =
-                    $"{extVariable.seeMMType.ToString().ToLower()} {extVariable.textValue}: {previousValue}";
+                    MakeVariableString(variable, extVariable, false, previousValue);
+                    // $"{extVariable.seeMMType.ToString().ToLower()} {extVariable.textValue}: {previousValue}";
                 var textToReplaceWith =
-                    $"{extVariable.seeMMType.ToString().ToLower()} {extVariable.textValue}: {value}";
+                    MakeVariableString(variable, extVariable, false, value);
+                    // $"{extVariable.seeMMType.ToString().ToLower()} {extVariable.textValue}: {value}";
                 sb.Replace(textToReplace, textToReplaceWith);
                 extStuffText.text = sb.ToString();
             };
@@ -175,6 +181,36 @@ public class CodeEditor : MonoBehaviour
         }
 
         extStuffText.text = sb.ToString();
+    }
+
+    private string MakeVariableString(Token variable, CodeRunner.ExtVariable extVariable, bool useToken = true , object variableValue = null)
+    {
+        var sb = new StringBuilder();
+        var varType = useToken ? variable.seeMMType : extVariable.seeMMType;
+        sb.Append($"{varType.ToString().ToLower()}");
+        if (extVariable.isArray)
+        {
+            sb.Append("[]");
+        }
+        var varName = useToken ? variable.textValue : extVariable.textValue;
+        sb.Append($" {varName}: ");
+        var varValue = useToken ? variable.literal : variableValue;
+        if (varValue is List<object> list)
+        {
+            sb.Append("{");
+            foreach (var value in list)
+            {
+                sb.Append($"{value}, ");
+            }
+            sb.Remove(sb.Length - 2, 2);
+            sb.Append("}");
+        }
+        else
+        {
+            sb.Append($"{varValue}");
+        }
+
+        return sb.ToString();
     }
 
     public void SetExtFunctions(Dictionary<string, SeeMMExternalFunction> codeRunnerExtFunctions)

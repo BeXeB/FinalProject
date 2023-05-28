@@ -14,16 +14,19 @@ public class CodeRunner : MonoBehaviour
         public float literalNumber;
         public bool literalBool;
         public SeeMMType seeMMType;
+        public bool isArray;
+        public List<float> arrayNumericValues;
+        public List<bool> arrayBoolValues;
         public Action<object, object> onChange;
     }
-    
+
     [SerializeField] private GameObject functionHolder;
     [SerializeField] public List<ExtVariable> extVariables;
     [SerializeField] private TextAsset baseTemplate;
 
-    private List<Token> extVariableTokens = new ();
-    private List<Token> extVariableTokensPrev = new ();
-    
+    private List<Token> extVariableTokens = new();
+    private List<Token> extVariableTokensPrev = new();
+
     private Dictionary<string, SeeMMExternalFunction> extFunctions;
 
     private ExternalFunction[] externalFunctions;
@@ -40,7 +43,7 @@ public class CodeRunner : MonoBehaviour
     private List<Statement> statements;
 
     private Expression callExpression;
-    
+
     private string code;
     private string codeFilePath;
     private string codeFolderName;
@@ -49,7 +52,7 @@ public class CodeRunner : MonoBehaviour
     private void Awake()
     {
         externalFunctions = functionHolder.GetComponents<ExternalFunction>();
-        
+
         ConvertExtFunctions();
 
         ConvertExtVariables();
@@ -60,12 +63,12 @@ public class CodeRunner : MonoBehaviour
         resolver = new Resolver();
         resolver.SetInterpreter(interpreter);
     }
-    
+
     public void SetCodeFolder(string folderName)
     {
         codeFolderName = folderName;
     }
-    
+
     public void SetCodeFileName(string fileName)
     {
         codeFileName = fileName;
@@ -76,15 +79,34 @@ public class CodeRunner : MonoBehaviour
         extVariableTokens = new List<Token>();
         foreach (var variable in extVariables)
         {
-            var token = new Token
+            object literal = null;
+            if (variable.isArray)
             {
-                type = TokenType.IDENTIFIER,
-                //Convert type to the correct type
+                if (CheckIfNumber(variable))
+                {
+                    var temp = new List<object>();
+                    variable.arrayNumericValues.ForEach(x => temp.Add(
+                        variable.seeMMType is SeeMMType.INT ? Convert.ToInt32(x) : Convert.ToSingle(x)));
+                    literal = temp;
+                }
+                else
+                {
+                    literal = variable.arrayBoolValues;
+                }
+            }
+            else
+            {
                 literal = CheckIfNumber(variable)
                     ? variable.seeMMType is SeeMMType.INT
                         ? Convert.ToInt32(variable.literalNumber)
                         : Convert.ToSingle(variable.literalNumber)
-                    : variable.literalBool,
+                    : variable.literalBool;
+            }
+
+            var token = new Token
+            {
+                type = TokenType.IDENTIFIER,
+                literal = literal,
                 textValue = variable.textValue,
                 seeMMType = variable.seeMMType,
                 line = -1,
@@ -102,7 +124,8 @@ public class CodeRunner : MonoBehaviour
 
         foreach (var func in externalFunctions)
         {
-            extFunctions.Add(func.functionName, new SeeMMExternalFunction(func.arity, func.function, func.argumentTypes));
+            extFunctions.Add(func.functionName,
+                new SeeMMExternalFunction(func.arity, func.function, func.argumentTypes));
         }
     }
 
@@ -176,10 +199,10 @@ public class CodeRunner : MonoBehaviour
     {
         shouldRun = false;
         interpreter.Evaluate(callExpression);
-        
+
         CheckChangedVariables();
 
-        yield return null;//new WaitForSeconds(.1f);
+        yield return null; //new WaitForSeconds(.1f);
         shouldRun = true;
     }
 
@@ -246,11 +269,11 @@ public class CodeRunner : MonoBehaviour
         return (extVariableTokens, extVariables);
     }
 
-    public Dictionary<string,ICallable> GetGlobalFunctions()
+    public Dictionary<string, ICallable> GetGlobalFunctions()
     {
         return interpreter.GetGlobalFunctions();
     }
-    
+
     public List<Token> GetTokens()
     {
         return tokens;
