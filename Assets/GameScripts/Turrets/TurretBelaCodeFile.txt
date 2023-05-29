@@ -1,13 +1,14 @@
 float speed = 100;
 
-function main() {
-    rotate(speed);
+
+function Main() {
+    Rotate(speed);
     if(rotation > 360){
         rotation = 0;
-    }
+    }
 }
 
-function rotate(sped) {
-    rotation = rotation + sped * deltatime();
+function Rotate(sped) {
+    rotation = rotation + sped * DeltaTime();
     return rotation;
 }

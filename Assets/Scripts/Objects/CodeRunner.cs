@@ -141,7 +141,7 @@ public class CodeRunner : MonoBehaviour
         resolver.Resolve(statements);
         interpreter.InterpretCode(statements);
         callExpression = new Expression.CallExpression(
-            new Expression.VariableExpression(new Token { textValue = "main" }),
+            new Expression.VariableExpression(new Token { textValue = "Main" }),
             new Token { type = TokenType.RIGHT_PAREN },
             new List<Expression>());
     }
@@ -220,7 +220,7 @@ public class CodeRunner : MonoBehaviour
 
         try
         {
-            interpreter.GetGlobals().Get(new Token { textValue = "main" });
+            interpreter.GetGlobals().Get(new Token { textValue = "Main" });
             code = editorCode;
             SaveCode(editorCode);
             return true;

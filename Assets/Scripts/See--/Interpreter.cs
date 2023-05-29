@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System;
-using System.Collections;
 using System.Globalization;
-using UnityEngine;
 
 public class Interpreter : Expression.IExpressionVisitor<object>, Statement.IStatementVisitor<object>
 {
@@ -27,11 +25,14 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         globalFunctions.Clear();
         
         var clock = new Clock();
-        globals.Define("deltatime", clock);
-        globalFunctions.Add("deltatime", clock);
+        globals.Define("DeltaTime", clock);
+        globalFunctions.Add("DeltaTime", clock);
         var print = new Print();
-        globals.Define("print", print);
-        globalFunctions.Add("print", print);
+        globals.Define("Print", print);
+        globalFunctions.Add("Print", print);
+        var sizeOf = new SizeOf();
+        globals.Define("SizeOf", sizeOf);
+        globalFunctions.Add("SizeOf", sizeOf);
         
         if (externalFunctions is not null)
         {
@@ -184,7 +185,6 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     public object VisitAssignmentExpression(Expression.AssignmentExpression expression)
     {
         object value = Evaluate(expression.value);
-        object index = null;
 
         if (expression.index == null)
         {
@@ -199,7 +199,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         }
         else
         {
-            index = Evaluate(expression.index);
+            var index = Evaluate(expression.index);
             if (locals.TryGetValue(expression, out int distance))
             {
                 environment.AssignAt(distance, expression.name, value, index);
@@ -209,7 +209,6 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
                 globals.Assign(expression.name, value, index);
             }
         }
-        // environment.Assign(expression.name, value);
         return value;
     }
 
@@ -221,10 +220,9 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
             foreach (var expr in expression.values)
             {
                 var value = Evaluate(expr);
-                //check if value is the same type as the array
                 switch (expression.type)
                 {
-                    case SeeMMType.INT when value is not int && value is float valueAsfloat && valueAsfloat % 1 != 0:
+                    case SeeMMType.INT when value is not int && value is float valueAsFloat && valueAsFloat % 1 != 0:
                         throw new RuntimeError(expression.name, "Initializer must be an integer.");
                     case SeeMMType.FLOAT when value is not float && value is not int:
                         throw new RuntimeError(expression.name, "Initializer must be a floating point number.");
@@ -288,7 +286,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
             throw new RuntimeError(expression.name, "Variable is not an array.");
         }
         var index = Evaluate(expression.index);
-        if (index is not int && !(index is float indexAsfloat && indexAsfloat % 1 == 0))
+        if (index is not int && !(index is float indexAsFloat && indexAsFloat % 1 == 0))
         {
             throw new RuntimeError(expression.name, "Index must be an integer.");
         }
@@ -320,8 +318,8 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     private bool CheckIntegerOperands(object left, object right)
     {
         return 
-            (left is int || left is float leftAsfloat && leftAsfloat % 1 == 0) && 
-            (right is int || right is float rightAsfloat && rightAsfloat % 1 == 0);
+            (left is int || left is float leftAsFloat && leftAsFloat % 1 == 0) && 
+            (right is int || right is float rightAsFloat && rightAsFloat % 1 == 0);
     }
 
     private void CheckNumberOperand(object operand, Token op)
@@ -434,7 +432,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         {
             value = Evaluate(statement.initializer);
         }
-        if (value is not int && value is float leftAsfloat && leftAsfloat % 1 != 0)
+        if (value is not int && value is float leftAsFloat && leftAsFloat % 1 != 0)
         {
             throw new RuntimeError(statement.name, "Initializer must be an integer.");
         }
@@ -484,7 +482,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
                 //check if value is the same type as the array
                 switch (statement.type)
                 {
-                    case SeeMMType.INT when value is not int && value is float valueAsfloat && valueAsfloat % 1 != 0:
+                    case SeeMMType.INT when value is not int && value is float valueAsFloat && valueAsFloat % 1 != 0:
                         throw new RuntimeError(statement.name, "Initializer must be an integer.");
                     case SeeMMType.FLOAT when value is not float && value is not int:
                         throw new RuntimeError(statement.name, "Initializer must be a floating point number.");
