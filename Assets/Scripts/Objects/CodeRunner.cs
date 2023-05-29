@@ -49,21 +49,6 @@ public class CodeRunner : MonoBehaviour
     private string codeFolderName;
     private string codeFileName;
 
-    private void Awake()
-    {
-        externalFunctions = functionHolder.GetComponents<ExternalFunction>();
-
-        ConvertExtFunctions();
-
-        ConvertExtVariables();
-
-        interpreter = new Interpreter(extFunctions, extVariableTokens);
-        lexer = new Lexer();
-        parser = new Parser();
-        resolver = new Resolver();
-        resolver.SetInterpreter(interpreter);
-    }
-
     public void SetCodeFolder(string folderName)
     {
         codeFolderName = folderName;
@@ -136,10 +121,25 @@ public class CodeRunner : MonoBehaviour
 
     private void Start()
     {
+        externalFunctions = functionHolder.GetComponents<ExternalFunction>();
+
+        ConvertExtFunctions();
+
+        ConvertExtVariables();
+
+        interpreter = new Interpreter(extFunctions, extVariableTokens);
+        lexer = new Lexer();
+        parser = new Parser();
+        resolver = new Resolver();
+        resolver.SetInterpreter(interpreter);
+        
         CheckAndReadCodeFile();
+        
         CheckCode(code);
+        
         resolver.Resolve(statements);
         interpreter.InterpretCode(statements);
+        
         callExpression = new Expression.CallExpression(
             new Expression.VariableExpression(new Token { textValue = "Main" }),
             new Token { type = TokenType.RIGHT_PAREN },
