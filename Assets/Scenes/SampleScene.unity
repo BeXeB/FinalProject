@@ -133,7 +133,7 @@ GameObject:
   m_Component:
   - component: {fileID: 108890001}
   - component: {fileID: 108890002}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Square
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -217,7 +217,7 @@ GameObject:
   m_Component:
   - component: {fileID: 110175510}
   - component: {fileID: 110175511}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Functions
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -264,7 +264,7 @@ GameObject:
   m_Component:
   - component: {fileID: 158074716}
   - component: {fileID: 158074717}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Square
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -350,7 +350,7 @@ GameObject:
   m_Component:
   - component: {fileID: 185938770}
   - component: {fileID: 185938771}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Square
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -813,7 +813,8 @@ GameObject:
   - component: {fileID: 634598420}
   - component: {fileID: 634598419}
   - component: {fileID: 634598422}
-  m_Layer: 0
+  - component: {fileID: 634598423}
+  m_Layer: 3
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -907,6 +908,51 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!61 &634598423
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 634598418}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 1, y: 1}
+    newSize: {x: 1, y: 1}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1}
+  m_EdgeRadius: 0
 --- !u!1 &659693114
 GameObject:
   m_ObjectHideFlags: 0
@@ -964,7 +1010,7 @@ GameObject:
   - component: {fileID: 666207838}
   - component: {fileID: 666207837}
   - component: {fileID: 666207836}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Turret (1)
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -1034,6 +1080,9 @@ MonoBehaviour:
   isSeekingTurret: 1
   playerTag: Player
   enemyTag: Enemy
+  layers:
+    serializedVersion: 2
+    m_Bits: 72
   turnSpeed: 1
   bulletPrefab: {fileID: 8174757834348150066, guid: cc622cd69d199a843bbaf6785a1eca2c, type: 3}
   firePoint: {fileID: 1305412460}
@@ -1099,7 +1148,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 781463898}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FiringPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1131,7 +1180,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1187238873}
   - component: {fileID: 1187238874}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Functions
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1177,7 +1226,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1305412460}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FiringPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1209,8 +1258,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1335075113}
   - component: {fileID: 1335075114}
-  - component: {fileID: 1335075115}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Square
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1284,51 +1332,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!61 &1335075115
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1335075112}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
-    newSize: {x: 1, y: 1}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
 --- !u!1 &1403077002
 GameObject:
   m_ObjectHideFlags: 0
@@ -1409,7 +1412,7 @@ GameObject:
   - component: {fileID: 1822508245}
   - component: {fileID: 1822508246}
   - component: {fileID: 1822508247}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Turret
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -1473,6 +1476,9 @@ MonoBehaviour:
   isSeekingTurret: 0
   playerTag: Player
   enemyTag: Enemy
+  layers:
+    serializedVersion: 2
+    m_Bits: 72
   turnSpeed: 10
   bulletPrefab: {fileID: 8174757834348150066, guid: cc622cd69d199a843bbaf6785a1eca2c, type: 3}
   firePoint: {fileID: 781463898}
@@ -1531,7 +1537,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1915490002}
   - component: {fileID: 1915490001}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Square
   m_TagString: Untagged
   m_Icon: {fileID: 0}

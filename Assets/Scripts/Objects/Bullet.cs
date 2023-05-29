@@ -4,30 +4,11 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    private Transform target;
 
     [SerializeField] private float speed = 70f;
 
-    public void Seek(Transform _target, bool isSeekingTurret)
+    public void ShootForward(GameObject bullet, Transform turret)
     {
-        target = _target;
-        if (isSeekingTurret)
-        {
-            if (target == null)
-            {
-                return;
-            }
-            transform.Translate(target.position, Space.World);
-        }
-
-    }
-
-    public void ShootForward(GameObject bullet, Transform turret, Transform target, bool isSeekingTurret)
-    {
-        if (isSeekingTurret && target == null)
-        {
-            return;
-        }
         bullet.GetComponent<Rigidbody2D>().AddForce(turret.up * speed, ForceMode2D.Impulse);
     }
 

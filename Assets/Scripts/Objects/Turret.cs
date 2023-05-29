@@ -16,8 +16,6 @@ public class Turret : MonoBehaviour, IInteractable
 
     public string name;
 
-    private Transform target;
-
     [SerializeField] private float range = 15f;
     [SerializeField] private float fireRate = 1f;
     [SerializeField] private bool isSeekingTurret = false;
@@ -25,6 +23,7 @@ public class Turret : MonoBehaviour, IInteractable
 
     [SerializeField] private string playerTag = "Player";
     [SerializeField] private string enemyTag = "Enemy";
+    [SerializeField] private LayerMask layers;
     [SerializeField] private float turnSpeed = 10f;
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private Transform firePoint;
@@ -60,16 +59,12 @@ public class Turret : MonoBehaviour, IInteractable
             GameObject playerGO = GameObject.FindGameObjectWithTag(playerTag);
             if (playerGO != null && Vector2.Distance(transform.position, playerGO.transform.position) <= range)
             {
-                target = playerGO.transform;
+                var target = playerGO.transform.position;
                 List<object> playerCoords = new();
-                playerCoords.Add(target.position.x);
-                playerCoords.Add(target.position.y);
+                playerCoords.Add(target.x);
+                playerCoords.Add(target.y);
                 codeRunner.UpdateExternalVariable(new Token
                 { textValue = "playerCoords", literal = playerCoords, seeMMType = SeeMMType.FLOAT });
-            }
-            else
-            {
-                target = null;
             }
         }
     }
@@ -85,13 +80,9 @@ public class Turret : MonoBehaviour, IInteractable
             {
                 if (enemy != null && enemy != gameObject && Vector2.Distance(transform.position, enemy.transform.position) <= range)
                 {
-                    target = enemy.transform;
-                    enemyCoordsX.Add(target.position.x);
-                    enemyCoordsY.Add(target.position.y);
-                }
-                else
-                {
-                    target = null;
+                    var target = enemy.transform.position;
+                    enemyCoordsX.Add(target.x);
+                    enemyCoordsY.Add(target.y);
                 }
             }
             codeRunner.UpdateExternalVariable(new Token
@@ -104,18 +95,14 @@ public class Turret : MonoBehaviour, IInteractable
 
     private void Update()
     {
-        if (isSeekingTurret)
-        {
-            if (target == null)
-            {
-                return;
-            }
-        }
-
         if (fireCountdown <= 0f)
         {
-            //Shoot();
-            fireCountdown = 1f / fireRate;
+            RaycastHit2D hit = Physics2D.Raycast(firePoint.position, firePoint.up, range);
+            if (hit.collider != null && ((1 << hit.transform.gameObject.layer) | layers)  == layers)
+            {
+                Shoot();
+                fireCountdown = 1f / fireRate;
+            }
         }
 
         fireCountdown -= Time.deltaTime;
@@ -138,7 +125,7 @@ public class Turret : MonoBehaviour, IInteractable
         Bullet bullet = bulletGO.GetComponent<Bullet>();
         if (bullet != null)
         {
-            bullet.ShootForward(bulletGO, transform, target, isSeekingTurret);
+            bullet.ShootForward(bulletGO, transform);
             Destroy(bulletGO, 5);
         }
     }

@@ -19,6 +19,7 @@ public class CodeEditor : MonoBehaviour
     [SerializeField] private TMP_InputField codeText;
     [SerializeField] private TMP_InputField codeInputField;
     [SerializeField] private TMP_Text extStuffText;
+    [SerializeField] private TMP_InputField lineNumbers;
 
     [SerializeField] private Color identifierColor;
     [SerializeField] private Color keywordColor;
@@ -52,6 +53,7 @@ public class CodeEditor : MonoBehaviour
     {
         timer = 1f;
         codeText.text = codeInputField.text;
+        UpdateLineNumbers(codeText.text);
         shouldCheck = true;
     }
 
@@ -103,7 +105,20 @@ public class CodeEditor : MonoBehaviour
         var code = codeRunner.GetCode();
         codeText.text = code;
         codeInputField.text = code;
+        UpdateLineNumbers(code);
         //StartCoroutine(CheckCode());
+    }
+
+    private void UpdateLineNumbers(string code)
+    {
+        var lineCount = code.Split('\n').Length;
+        StringBuilder sb = new();
+        for (int i = 0; i < lineCount; i++)
+        {
+            sb.Append($"{i+1}\n");
+        }
+        sb.Remove(sb.Length - 1, 1);
+        lineNumbers.text = sb.ToString();
     }
 
     // private IEnumerator CheckCode()
