@@ -45,7 +45,7 @@ public class Bullet : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         GameObject collider = collision.gameObject;
-        if (collider.GetComponentInParent<PlayerMovement>())
+        if (collider.tag == "Player" || collider.tag == "Enemy"/*collider.GetComponentInParent<PlayerMovement>()*/)
         {
             Destroy(collider);//Target has been hit, if target is player => game over
             Destroy(gameObject);

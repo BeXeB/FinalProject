@@ -155,7 +155,7 @@ public class Turret : MonoBehaviour, IInteractable
     {
         var sceneLoadOp = SceneManager.LoadSceneAsync("CodeEditor", LoadSceneMode.Additive);
         yield return new WaitUntil(() => sceneLoadOp.isDone);
-        player.GetComponentInParent<PlayerInput>().currentActionMap.Disable();
+        player.GetComponent<PlayerInput>().currentActionMap.Disable();
         SceneManager.SetActiveScene(SceneManager.GetSceneByName("CodeEditor"));
         var codeEditor = CodeEditor.instance;
         codeEditor.SetCodeRunner(codeRunner);
