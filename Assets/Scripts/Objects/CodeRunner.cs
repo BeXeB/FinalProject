@@ -42,13 +42,49 @@ public class CodeRunner : MonoBehaviour
     private List<Token> tokens;
     private List<Statement> statements;
 
-    private Expression callExpression;
+    private Expression mainCallExpression;
+    private Expression setupCallExpression;
 
     private string code;
     private string codeFilePath;
     private string codeFolderName;
     private string codeFileName;
 
+    private void Awake()
+    {
+        mainCallExpression = new Expression.CallExpression(
+            new Expression.VariableExpression(new Token { textValue = "Main" }),
+            new Token { type = TokenType.RIGHT_PAREN },
+            new List<Expression>());
+        setupCallExpression = new Expression.CallExpression(
+            new Expression.VariableExpression(new Token { textValue = "Setup" }),
+            new Token { type = TokenType.RIGHT_PAREN },
+            new List<Expression>());
+    }
+
+    private void Start()
+    {
+        externalFunctions = functionHolder.GetComponents<ExternalFunction>();
+
+        ConvertExtFunctions();
+
+        ConvertExtVariables();
+
+        interpreter = new Interpreter(extFunctions, extVariableTokens);
+        lexer = new Lexer();
+        parser = new Parser();
+        resolver = new Resolver();
+        resolver.SetInterpreter(interpreter);
+        
+        CheckAndReadCodeFile();
+        
+        CheckCode(code);
+        
+        resolver.Resolve(statements);
+        interpreter.InterpretCode(statements);
+        interpreter.Evaluate(setupCallExpression);
+    }
+    
     public void SetCodeFolder(string folderName)
     {
         codeFolderName = folderName;
@@ -119,33 +155,6 @@ public class CodeRunner : MonoBehaviour
         return variable.seeMMType is SeeMMType.INT or SeeMMType.FLOAT;
     }
 
-    private void Start()
-    {
-        externalFunctions = functionHolder.GetComponents<ExternalFunction>();
-
-        ConvertExtFunctions();
-
-        ConvertExtVariables();
-
-        interpreter = new Interpreter(extFunctions, extVariableTokens);
-        lexer = new Lexer();
-        parser = new Parser();
-        resolver = new Resolver();
-        resolver.SetInterpreter(interpreter);
-        
-        CheckAndReadCodeFile();
-        
-        CheckCode(code);
-        
-        resolver.Resolve(statements);
-        interpreter.InterpretCode(statements);
-        
-        callExpression = new Expression.CallExpression(
-            new Expression.VariableExpression(new Token { textValue = "Main" }),
-            new Token { type = TokenType.RIGHT_PAREN },
-            new List<Expression>());
-    }
-
     private void CheckAndReadCodeFile()
     {
         var path = SeeMMScriptsHelper.GetBasePath($"{codeFolderName}/") + $"{codeFileName}.txt";
@@ -198,7 +207,7 @@ public class CodeRunner : MonoBehaviour
     private IEnumerator RunCode()
     {
         shouldRun = false;
-        interpreter.Evaluate(callExpression);
+        interpreter.Evaluate(mainCallExpression);
 
         CheckChangedVariables();
 
@@ -220,6 +229,8 @@ public class CodeRunner : MonoBehaviour
 
         try
         {
+            interpreter.GetGlobals().Get(new Token { textValue = "Setup" });
+            interpreter.Evaluate(setupCallExpression);
             interpreter.GetGlobals().Get(new Token { textValue = "Main" });
             code = editorCode;
             SaveCode(editorCode);

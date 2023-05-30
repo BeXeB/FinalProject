@@ -84,7 +84,7 @@ public class CodeEditor : MonoBehaviour
         }
         else
         {
-            Debug.Log("Missing Main()");
+            Debug.Log("Missing Main() or Setup() function");
         }
     }
 
