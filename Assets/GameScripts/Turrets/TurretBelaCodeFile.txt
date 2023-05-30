@@ -1,5 +1,10 @@
 float speed = 100;
 
+function Setup()
+{
+    SetTarget(GetIntruderID());
+    //SetTarget(GetIDSID());
+}
 
 function Main() {
     Rotate(speed);
