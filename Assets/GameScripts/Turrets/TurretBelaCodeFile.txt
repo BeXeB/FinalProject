@@ -3,10 +3,10 @@ float speed = 100;
 function Setup()
 {
     SetTarget(GetIntruderID());
-    //SetTarget(GetIDSID());
 }
 
 function Main() {
+    SetActive(false);
     Rotate(speed);
     if(rotation > 360){
         rotation = 0;

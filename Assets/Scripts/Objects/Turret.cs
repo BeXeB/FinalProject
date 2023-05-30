@@ -28,6 +28,8 @@ public class Turret : MonoBehaviour, IInteractable
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private Transform firePoint;
 
+    private bool isEnabled = true;
+
     private void Awake()
     {
         codeRunner = GetComponent<CodeRunner>();
@@ -45,8 +47,11 @@ public class Turret : MonoBehaviour, IInteractable
             if (extVar.textValue != "rotation") continue;
             extVar.onChange += (previousValue, value) =>
             {
-                transform.rotation =
+                if (isEnabled)
+                {
+                    transform.rotation =
                     Quaternion.Euler(0, 0, Convert.ToSingle(value, CultureInfo.InvariantCulture));
+                }
             };
             codeRunner.extVariables[i] = extVar;
         }
@@ -54,7 +59,7 @@ public class Turret : MonoBehaviour, IInteractable
 
     private void UpdatePlayerPos()
     {
-        if (isSeekingTurret)
+        if (isSeekingTurret && isEnabled)
         {
             GameObject playerGO = GameObject.FindGameObjectWithTag(playerTag);
             if (playerGO != null && Vector2.Distance(transform.position, playerGO.transform.position) <= range)
@@ -71,7 +76,7 @@ public class Turret : MonoBehaviour, IInteractable
 
     private void FindEnemies()
     {
-        if (isSeekingTurret)
+        if (isSeekingTurret && isEnabled)
         {
             GameObject[] enemies = GameObject.FindGameObjectsWithTag(enemyTag);
             List<object> enemyCoordsX = new();
@@ -95,7 +100,7 @@ public class Turret : MonoBehaviour, IInteractable
 
     private void Update()
     {
-        if (fireCountdown <= 0f)
+        if (fireCountdown <= 0f && isEnabled)
         {
             RaycastHit2D hit = Physics2D.Raycast(firePoint.position, firePoint.up, range);
             if (hit.collider != null && ((1 << hit.transform.gameObject.layer) | layers)  == layers)
@@ -110,6 +115,10 @@ public class Turret : MonoBehaviour, IInteractable
 
     public void SetAim(float coordX, float coordY)
     {
+        if (!isEnabled)
+        {
+            return;
+        }
         float distanceX = coordX - transform.position.x;
         float distanceY = coordY - transform.position.y;
         float angle = Mathf.Atan2(distanceX, distanceY) * Mathf.Rad2Deg;
@@ -156,6 +165,11 @@ public class Turret : MonoBehaviour, IInteractable
         codeEditor.SetExtVariables(extVariables.Item1, extVariables.Item2);
         codeEditor.SetExtFunctions(codeRunner.GetExtFunctions());
         codeEditor.SetGlobalFunctions(codeRunner.GetGlobalFunctions());
+    }
+
+    public void SetTurretState(bool state)
+    {
+        isEnabled = state;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)

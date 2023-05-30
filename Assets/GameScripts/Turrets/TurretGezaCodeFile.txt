@@ -1,4 +1,8 @@
+function Setup()
+{
+    SetTarget(GetIntruderID());
+}
+
 function Main() {
     SetAim(playerCoords[0], playerCoords[1]);
-    Print(yes());
 }

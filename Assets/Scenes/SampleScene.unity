@@ -216,7 +216,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 110175510}
+  - component: {fileID: 110175513}
+  - component: {fileID: 110175512}
   - component: {fileID: 110175511}
+  - component: {fileID: 110175514}
   m_Layer: 6
   m_Name: Functions
   m_TagString: Untagged
@@ -248,12 +251,57 @@ MonoBehaviour:
   m_GameObject: {fileID: 110175509}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a2735132972dd54f8be91e77d1ddb03, type: 3}
+  m_Script: {fileID: 11500000, guid: 65037d013f950fc4d8a61451f406d3b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  functionName: test
-  arity: 2
+  functionName: SetTarget
+  arity: 1
+  argumentTypes: 00000000
+--- !u!114 &110175512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 110175509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cdc2b0d591fe7d4c90078d00af13bd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  functionName: GetIDSID
+  arity: 0
   argumentTypes: 
+--- !u!114 &110175513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 110175509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da8f0e58be794ff49a17094317df63f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  functionName: GetIntruderID
+  arity: 0
+  argumentTypes: 
+--- !u!114 &110175514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 110175509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02474c9cc4303a543982061ebf20d6c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  functionName: SetActive
+  arity: 1
+  argumentTypes: 02000000
 --- !u!1 &158074715
 GameObject:
   m_ObjectHideFlags: 0
@@ -1182,6 +1230,8 @@ GameObject:
   - component: {fileID: 1187238874}
   - component: {fileID: 1187238876}
   - component: {fileID: 1187238875}
+  - component: {fileID: 1187238877}
+  - component: {fileID: 1187238878}
   m_Layer: 6
   m_Name: Functions
   m_TagString: Untagged
@@ -1231,7 +1281,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4cdc2b0d591fe7d4c90078d00af13bd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  functionName: GetDefenseID
+  functionName: GetIDSID
   arity: 0
   argumentTypes: 
 --- !u!114 &1187238876
@@ -1249,6 +1299,36 @@ MonoBehaviour:
   functionName: SetTarget
   arity: 1
   argumentTypes: 00000000
+--- !u!114 &1187238877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1187238871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da8f0e58be794ff49a17094317df63f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  functionName: GetIntruderID
+  arity: 0
+  argumentTypes: 
+--- !u!114 &1187238878
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1187238871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02474c9cc4303a543982061ebf20d6c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  functionName: SetActive
+  arity: 1
+  argumentTypes: 02000000
 --- !u!1 &1305412459
 GameObject:
   m_ObjectHideFlags: 0
