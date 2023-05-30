@@ -23,11 +23,16 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnInteract(InputValue inputValue)
     {
-        turret.GetComponent<Turret>().Interact();
+        turret.GetComponent<IInteractable>().Interact();
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         turret = collision.gameObject;
+    }
+    
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        turret = null;
     }
 }

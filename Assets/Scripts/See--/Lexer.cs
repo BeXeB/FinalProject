@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -83,6 +82,14 @@ public class Lexer
                 AddToken(TokenType.SEMICOLON);
                 break;
             case '/':
+                if (Match('/'))
+                {
+                    while (Peek() != '\n' && currentIndex < code.Length)
+                    {
+                        Advance();
+                    }
+                    break;
+                }
                 AddToken(TokenType.SLASH);
                 break;
             case '*':

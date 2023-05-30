@@ -177,4 +177,10 @@ public class Turret : MonoBehaviour, IInteractable
         player = collision.gameObject;
         canBeInteracted = true;
     }
+    
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        player = null;
+        canBeInteracted = false;
+    }
 }
