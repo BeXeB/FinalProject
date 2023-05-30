@@ -1180,6 +1180,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1187238873}
   - component: {fileID: 1187238874}
+  - component: {fileID: 1187238876}
+  - component: {fileID: 1187238875}
   m_Layer: 6
   m_Name: Functions
   m_TagString: Untagged
@@ -1217,6 +1219,36 @@ MonoBehaviour:
   functionName: SetAim
   arity: 2
   argumentTypes: 0100000001000000
+--- !u!114 &1187238875
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1187238871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cdc2b0d591fe7d4c90078d00af13bd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  functionName: GetDefenseID
+  arity: 0
+  argumentTypes: 
+--- !u!114 &1187238876
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1187238871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65037d013f950fc4d8a61451f406d3b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  functionName: SetTarget
+  arity: 1
+  argumentTypes: 00000000
 --- !u!1 &1305412459
 GameObject:
   m_ObjectHideFlags: 0

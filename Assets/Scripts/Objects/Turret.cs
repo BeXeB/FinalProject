@@ -119,6 +119,11 @@ public class Turret : MonoBehaviour, IInteractable
         { textValue = "rotation", literal = transform.rotation.eulerAngles.z, seeMMType = SeeMMType.FLOAT });
     }
 
+    public void SetTargetLayer(int layer)
+    {
+        layers = 1 << layer;
+    }
+
     private void Shoot()
     {
         GameObject bulletGO = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
