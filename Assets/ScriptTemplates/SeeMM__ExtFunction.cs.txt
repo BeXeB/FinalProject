@@ -1,0 +1,17 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+
+    #ROOTNAMESPACEBEGIN#
+public class #SCRIPTNAME# : ExternalFunction
+{
+    private void Awake()
+    {
+        function = (List<object> args) =>
+        {
+            return null;
+        };
+        argumentTypes = new List<SeeMMType> {};
+    }
+}
+#ROOTNAMESPACEEND#
