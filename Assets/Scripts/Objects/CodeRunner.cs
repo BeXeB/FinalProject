@@ -236,7 +236,7 @@ public class CodeRunner : MonoBehaviour
             SaveCode(editorCode);
             return true;
         }
-        catch (RuntimeError)
+        catch (RuntimeError e)
         {
             return false;
         }

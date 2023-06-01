@@ -121,28 +121,20 @@ public class CodeEditor : MonoBehaviour
         lineNumbers.text = sb.ToString();
     }
 
-    // private IEnumerator CheckCode()
-    // {
-    //     while (isOpen)
-    //     {
-    //         RemoveHighlightColors();
-    //         codeRunner.CheckCode(codeInputField.text);
-    //         HighlightCode(codeRunner.GetTokens().Distinct().ToList());
-    //         yield return new WaitForSeconds(.2f);
-    //     }
-    // }
-    
 
     private void HighlightCode(List<Token> tokens)
     {
+        var textsToInsert = new List<(Token, string)>();
         for (var i = 0; i < tokens.Count; i++)
         {
             var token = tokens[i];
             switch (token.type)
             {
                 case TokenType.IDENTIFIER:
-                    codeText.text = codeText.text.Replace(token.textValue,
-                        $"<color=#{ColorUtility.ToHtmlStringRGB(identifierColor)}>{token.textValue}</color>");
+                    textsToInsert.Add((token,
+                        $"<color=#{ColorUtility.ToHtmlStringRGB(identifierColor)}>"));
+                    // codeText.text = codeText.text.Replace(token.textValue,    
+                    //     $"<color=#{ColorUtility.ToHtmlStringRGB(identifierColor)}>{token.textValue}</color>");
                     break;
                 case TokenType.ELSE:
                 case TokenType.FALSE:
@@ -156,12 +148,20 @@ public class CodeEditor : MonoBehaviour
                 case TokenType.BOOL:
                 case TokenType.WHILE:
                 case TokenType.FUNC:
-                    codeText.text = codeText.text.Replace(token.textValue,
-                        $"<color=#{ColorUtility.ToHtmlStringRGB(keywordColor)}>{token.textValue}</color>");
+                    textsToInsert.Add((token,
+                        $"<color=#{ColorUtility.ToHtmlStringRGB(keywordColor)}>"));
+                    // codeText.text = codeText.text.Replace(token.textValue,
+                    //     $"<color=#{ColorUtility.ToHtmlStringRGB(keywordColor)}>{token.textValue}</color>");
                     break;
                 default:
                     continue;
             }
+        }
+        for (var i = textsToInsert.Count - 1; i >= 0; i--)
+        {
+            var (token, text) = textsToInsert[i];
+            codeText.SetTextWithoutNotify(codeText.text.Insert(token.startIndex + token.textValue.Length, "</color>"));
+            codeText.SetTextWithoutNotify(codeText.text.Insert(token.startIndex, text));
         }
     }
 

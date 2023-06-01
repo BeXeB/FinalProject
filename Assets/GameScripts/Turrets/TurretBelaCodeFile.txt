@@ -7,7 +7,7 @@ function Setup()
 
 function Main() {
     SetActive(true);
-    Rotate(speed);
+    //Rotate(speed);
     if(rotation > 360){
         rotation = 0;
     }
