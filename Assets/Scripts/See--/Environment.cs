@@ -60,12 +60,49 @@ public class Environment
     {
         if (values.ContainsKey(name.textValue))
         {
-            if (values[name.textValue] is List<object>)
+            if (values[name.textValue] is List<object> list)
             {
+                switch (name.seeMMType)
+                {
+                    case SeeMMType.INT_ARRAY:
+                        foreach (var val in list)
+                        {
+                            if (val is not int && val is float valueAsFloat && valueAsFloat % 1 != 0)
+                            {
+                                throw new RuntimeError(name, "Cannot assign a non-int value to an int array.");
+                            }
+                        }
+
+                        break;
+
+                    case SeeMMType.BOOL_ARRAY:
+                        foreach (var val in list)
+                        {
+                            if (val is not bool)
+                            {
+                                throw new RuntimeError(name, "Cannot assign a non-bool value to a bool array.");
+                            }
+                        }
+
+                        break;
+
+                    case SeeMMType.FLOAT_ARRAY:
+                        foreach (var val in list)
+                        {
+                            if (val is not float && val is not int)
+                            {
+                                throw new RuntimeError(name,
+                                    "Cannot assign a non-floating point value to a float array.");
+                            }
+                        }
+
+                        break;
+                }
+
                 values[name.textValue] = value;
                 return;
             }
-            
+
             switch (name.seeMMType)
             {
                 case SeeMMType.INT when value is not int && value is float valueAsFloat && valueAsFloat % 1 != 0:
@@ -98,6 +135,33 @@ public class Environment
         {
             if (values[name.textValue] is List<object> list)
             {
+                switch (name.seeMMType)
+                {
+                    case SeeMMType.INT_ARRAY:
+                        if (value is not int && value is float indexAsFloat && indexAsFloat % 1 != 0)
+                        {
+                            throw new RuntimeError(name, "Cannot assign a non-int value to an int array.");
+                        }
+
+                        break;
+
+                    case SeeMMType.BOOL_ARRAY:
+                        if (value is not bool)
+                        {
+                            throw new RuntimeError(name, "Cannot assign a non-bool value to a bool array.");
+                        }
+
+                        break;
+
+                    case SeeMMType.FLOAT_ARRAY:
+                        if (value is not int && value is not float)
+                        {
+                            throw new RuntimeError(name, "Cannot assign a non-floating point value to a float array.");
+                        }
+
+                        break;
+                }
+
                 list[Convert.ToInt32(index, CultureInfo.InvariantCulture)] = value;
                 return;
             }

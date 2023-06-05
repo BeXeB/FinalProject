@@ -28,8 +28,7 @@ public class CodeEditor : MonoBehaviour
     private bool shouldCheck = false;
 
     private bool isLoadedIn = false;
-
-    //TODO set to false when closing editor
+    
     private CodeEditor()
     {
         if (instance == null)

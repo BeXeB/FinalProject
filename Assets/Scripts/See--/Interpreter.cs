@@ -179,6 +179,58 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
         {
             throw new RuntimeError(expression.paren, "Expected " + function.Arity() + " arguments but got " + arguments.Count + ".");
         }
+
+        var argumentsTypes = function.GetArgumentTypes();
+        
+        for (int i = 0; i < arguments.Count; i++)
+        {
+            var value = arguments[i];
+            switch (argumentsTypes[i])
+            {
+                case SeeMMType.INT when value is not int && value is float valueAsFloat && valueAsFloat % 1 != 0:
+                    throw new RuntimeError(expression.paren, $"Argument {i+1} must be an integer.");
+                case SeeMMType.FLOAT when value is not float && value is not int:
+                    throw new RuntimeError(expression.paren, $"Argument {i+1} must be a floating point number.");
+                case SeeMMType.BOOL when value is not bool:
+                    throw new RuntimeError(expression.paren, $"Argument {i+1} must be a boolean.");
+                case SeeMMType.INT_ARRAY:
+                    if (value is not List<object> intArray)
+                        throw new RuntimeError(expression.paren, $"Argument {i+1} must be an array.");
+                    
+                    foreach (var val in intArray)
+                    {
+                        if (val is not int && val is float valueAsFloat && valueAsFloat % 1 != 0)
+                        {
+                            throw new RuntimeError(expression.paren, $"Argument {i+1}  must be an integer array.");
+                        }
+                    }
+                    break;
+                case SeeMMType.FLOAT_ARRAY:
+                    if (value is not List<object> floatArray)
+                        throw new RuntimeError(expression.paren, $"Argument {i+1} must be an array.");
+
+                    foreach (var val in floatArray)
+                    {
+                        if (val is not float && val is not int)
+                        {
+                            throw new RuntimeError(expression.paren, $"Argument {i+1} must be a float array.");
+                        }
+                    }
+                    break;
+                case SeeMMType.BOOL_ARRAY:
+                    if (value is not List<object> boolArray)
+                        throw new RuntimeError(expression.paren, $"Argument {i+1} must be an array.");
+                    foreach (var val in boolArray)
+                    {
+                        if (val is not bool)
+                        {
+                            throw new RuntimeError(expression.paren, $"Argument {i+1} must be a boolean array.");
+                        }
+                    }
+                    break;
+            }
+        }
+        
         return function.Call(this, arguments);
     }
 
@@ -222,11 +274,11 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
                 var value = Evaluate(expr);
                 switch (expression.type)
                 {
-                    case SeeMMType.INT when value is not int && value is float valueAsFloat && valueAsFloat % 1 != 0:
+                    case SeeMMType.INT_ARRAY when value is not int && value is float valueAsFloat && valueAsFloat % 1 != 0:
                         throw new RuntimeError(expression.name, "Initializer must be an integer.");
-                    case SeeMMType.FLOAT when value is not float && value is not int:
+                    case SeeMMType.FLOAT_ARRAY when value is not float && value is not int:
                         throw new RuntimeError(expression.name, "Initializer must be a floating point number.");
-                    case SeeMMType.BOOL when value is not bool:
+                    case SeeMMType.BOOL_ARRAY when value is not bool:
                         throw new RuntimeError(expression.name, "Initializer must be a boolean.");
                 }
                 array.Add(value);
@@ -390,7 +442,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
 
     public object VisitFunctionStatement(Statement.FunctionStatement statement)
     {
-        Function function = new Function(statement, environment);
+        Function function = new Function(statement, environment, statement.argumentTypes);
         environment.Define(statement.name.textValue, function);
         return null;
     }
@@ -479,14 +531,14 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
             foreach (var initializer in statement.initializer)
             {
                 var value = Evaluate(initializer);
-                //check if value is the same type as the array
+                
                 switch (statement.type)
                 {
-                    case SeeMMType.INT when value is not int && value is float valueAsFloat && valueAsFloat % 1 != 0:
+                    case SeeMMType.INT_ARRAY when value is not int && value is float valueAsFloat && valueAsFloat % 1 != 0:
                         throw new RuntimeError(statement.name, "Initializer must be an integer.");
-                    case SeeMMType.FLOAT when value is not float && value is not int:
+                    case SeeMMType.FLOAT_ARRAY when value is not float && value is not int:
                         throw new RuntimeError(statement.name, "Initializer must be a floating point number.");
-                    case SeeMMType.BOOL when value is not bool:
+                    case SeeMMType.BOOL_ARRAY when value is not bool:
                         throw new RuntimeError(statement.name, "Initializer must be a boolean.");
                 }
                 array.Add(value);

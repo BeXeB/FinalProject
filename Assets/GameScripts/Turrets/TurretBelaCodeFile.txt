@@ -7,13 +7,13 @@ function Setup()
 
 function Main() {
     SetActive(true);
-    //Rotate(speed);
+    Rotate(speed);
     if(rotation > 360){
         rotation = 0;
     }
 }
 
-function Rotate(sped) {
+function Rotate(float sped) {
     rotation = rotation + sped * DeltaTime();
     return rotation;
 }

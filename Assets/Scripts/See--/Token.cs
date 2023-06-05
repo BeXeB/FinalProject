@@ -33,6 +33,7 @@ public enum TokenType
 public enum SeeMMType
 {
     INT, FLOAT, BOOL, 
+    FLOAT_ARRAY, INT_ARRAY, BOOL_ARRAY,
     
     ANY, NONE
 }

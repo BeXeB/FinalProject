@@ -6,10 +6,13 @@ public class Function : ICallable
 {
     private readonly Statement.FunctionStatement declaration;
     private readonly Environment closure;
-    public Function(Statement.FunctionStatement declaration, Environment closure)
+    private readonly List<SeeMMType> argumentTypes;
+
+    public Function(Statement.FunctionStatement declaration, Environment closure, List<SeeMMType> argumentTypes = null)
     {
         this.closure = closure;
         this.declaration = declaration;
+        this.argumentTypes = argumentTypes;
     }
 
     public int Arity()
@@ -37,7 +40,6 @@ public class Function : ICallable
 
     public List<SeeMMType> GetArgumentTypes()
     {
-        //If we want to make sure that the function is called with the correct types
-        return null;
+        return argumentTypes;
     }
 }

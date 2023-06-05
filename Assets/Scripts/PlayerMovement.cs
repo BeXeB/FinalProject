@@ -7,7 +7,7 @@ public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private Rigidbody2D rigidBody;
-    private GameObject turret;//TODO: Remove this
+    private GameObject turret;
 
     private Vector2 movement;
 

@@ -10,7 +10,7 @@ public class Lexer
     string code;
 
     List<Token> tokens;
-    private Dictionary<string, TokenType> identifiers = new ();
+    private Dictionary<string, SeeMMType> identifiers = new ();
 
     static Dictionary<string, TokenType> keyWords = new Dictionary<string, TokenType>()
     {
@@ -236,34 +236,37 @@ public class Lexer
         var token = new Token { type = type, line = line, startIndex = startIndex, textValue = text, literal = literal };
         if (token.type == TokenType.IDENTIFIER)
         {
+            var isArray = false;
             if (!identifiers.ContainsKey(token.textValue))
             {
                 var prevTokenType = tokens[^1].type;
                 if (prevTokenType == TokenType.RIGHT_SQUAREBRACKET)
                 {
                     prevTokenType = tokens[^3].type;
+                    isArray = true;
                 }
-                identifiers.Add(token.textValue, prevTokenType);
-                token.seeMMType = GetSeeMMType(prevTokenType);
+                var seeMMType = GetSeeMMType(isArray, prevTokenType);
+                identifiers.Add(token.textValue, seeMMType);
+                token.seeMMType = seeMMType;
             }
             else
             {
-                token.seeMMType = GetSeeMMType(identifiers[token.textValue]);
+                token.seeMMType = identifiers[token.textValue];
             }
         }
         tokens.Add(token);
     }
 
-    private static SeeMMType GetSeeMMType(TokenType seeMMType)
+    private static SeeMMType GetSeeMMType(bool isArray ,TokenType seeMMType)
     {
         switch (seeMMType)
         {
             case TokenType.INT:
-                return SeeMMType.INT;
+                return isArray ? SeeMMType.INT_ARRAY : SeeMMType.INT;
             case TokenType.FLOAT:
-                return SeeMMType.FLOAT;
+                return isArray ? SeeMMType.FLOAT_ARRAY : SeeMMType.FLOAT;
             case TokenType.BOOL:
-                return SeeMMType.BOOL;
+                return isArray ? SeeMMType.BOOL_ARRAY : SeeMMType.BOOL;
             default:
                 return SeeMMType.NONE;
         }

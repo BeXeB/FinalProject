@@ -58,6 +58,7 @@ public class Parser
         Token name = Consume(TokenType.IDENTIFIER, "Expect function name.");
         Consume(TokenType.LEFT_PAREN, "Expect '(' after function name.");
         List<Token> parameters = new List<Token>();
+        List<SeeMMType> parameterTypes = new List<SeeMMType>();
         if (!Check(TokenType.RIGHT_PAREN))
         {
             do
@@ -66,14 +67,49 @@ public class Parser
                 {
                     Error(Peek(), "Can't have more than 255 parameters.");
                 }
+                //find type and then the identifier
+                switch (Peek().type)
+                {
+                    case TokenType.INT:
+                        parameterTypes.Add(SeeMMType.INT);
+                        Advance();
+                        if (Match(TokenType.LEFT_SQUAREBRACKET))
+                        {
+                            Consume(TokenType.RIGHT_SQUAREBRACKET, "Expect ']' after '['.");
+                            parameterTypes[^1] = SeeMMType.INT_ARRAY;
+                        }
+                        break;
+                    case TokenType.FLOAT:
+                        parameterTypes.Add(SeeMMType.FLOAT);
+                        Advance();
+                        if (Match(TokenType.LEFT_SQUAREBRACKET))
+                        {
+                            Consume(TokenType.RIGHT_SQUAREBRACKET, "Expect ']' after '['.");
+                            parameterTypes[^1] = SeeMMType.FLOAT_ARRAY;
+                        }
+                        break;
+                    case TokenType.BOOL:
+                        parameterTypes.Add(SeeMMType.BOOL);
+                        Advance();
+                        if (Match(TokenType.LEFT_SQUAREBRACKET))
+                        {
+                            Consume(TokenType.RIGHT_SQUAREBRACKET, "Expect ']' after '['.");
+                            parameterTypes[^1] = SeeMMType.BOOL_ARRAY;
+                        }
+                        break;
+                    default:
+                        Error(Peek(), "Expect parameter type.");
+                        break;
+                }
+
                 parameters.Add(
-                Consume(TokenType.IDENTIFIER, "Expect parameter name."));
+                    Consume(TokenType.IDENTIFIER, "Expect parameter name."));
             } while (Match(TokenType.COMMA));
         }
         Consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
         Consume(TokenType.LEFT_BRACE, "Expect '{' before function body.");
         List<Statement> body = Block();
-        return new Statement.FunctionStatement(name, parameters, body);
+        return new Statement.FunctionStatement(name, parameters, body, parameterTypes);
     }
 
     private Statement VariableDeclaration(TokenType type)
@@ -118,19 +154,7 @@ public class Parser
             Consume(TokenType.RIGHT_BRACE, "Expect '}' after array initializer.");
         }
         Consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
-        // SeeMMType arrayType = SeeMMType.NONE;
-        // switch (type)
-        // {
-        //     case TokenType.INT:
-        //         arrayType = SeeMMType.INT;
-        //         break;
-        //     case TokenType.FLOAT:
-        //         arrayType = SeeMMType.FLOAT;
-        //         break;
-        //     case TokenType.BOOL:
-        //         arrayType = SeeMMType.BOOL;
-        //         break;
-        // }
+
         return new Statement.ArrayStatement(name, name.seeMMType, initializer.ToArray(), initializer.Count);
     }
 
