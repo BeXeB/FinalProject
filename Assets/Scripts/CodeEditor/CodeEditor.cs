@@ -145,8 +145,8 @@ public class CodeEditor : MonoBehaviour
                 case TokenType.INT:
                 case TokenType.FLOAT:
                 case TokenType.BOOL:
+                case TokenType.VOID:
                 case TokenType.WHILE:
-                case TokenType.FUNC:
                     textsToInsert.Add((token,
                         $"<color=#{ColorUtility.ToHtmlStringRGB(keywordColor)}>"));
                     // codeText.text = codeText.text.Replace(token.textValue,

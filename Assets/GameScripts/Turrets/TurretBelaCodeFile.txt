@@ -1,11 +1,13 @@
 float speed = 100;
+float a;
 
-function Setup()
+void Setup()
 {
     SetTarget(GetIntruderID());
+    Print(a);
 }
 
-function Main() {
+void Main() {
     SetActive(true);
     Rotate(speed);
     if(rotation > 360){
@@ -13,7 +15,7 @@ function Main() {
     }
 }
 
-function Rotate(float sped) {
+float Rotate(float sped) {
     rotation = rotation + sped * DeltaTime();
     return rotation;
 }

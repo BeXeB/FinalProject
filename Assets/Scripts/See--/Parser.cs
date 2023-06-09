@@ -4,12 +4,14 @@ using UnityEngine;
 
 public class Parser
 {
-    private class ParseError : System.Exception { }
+    private class ParseError : System.Exception
+    {
+    }
 
     private List<Token> tokens;
     private int current = 0;
     private int functions = 0;
-    
+
     public void SetTokens(List<Token> tokens)
     {
         this.tokens = tokens;
@@ -33,17 +35,18 @@ public class Parser
                 statements.Add(declaration);
             }
         }
+
         return statements;
     }
 
-    private Statement Declaration() 
+    private Statement Declaration()
     {
         try
         {
-            if (Match(TokenType.FUNC)) return Function();
-            if (Match(TokenType.INT)) return VariableDeclaration(TokenType.INT);
-            if (Match(TokenType.FLOAT)) return VariableDeclaration(TokenType.FLOAT);
-            if (Match(TokenType.BOOL)) return VariableDeclaration(TokenType.BOOL);
+            if (Match(TokenType.INT)) return VariableDeclaration(SeeMMType.INT);
+            if (Match(TokenType.FLOAT)) return VariableDeclaration(SeeMMType.FLOAT);
+            if (Match(TokenType.BOOL)) return VariableDeclaration(SeeMMType.BOOL);
+            if (Match(TokenType.VOID)) return VariableDeclaration(SeeMMType.VOID);
             return Statement();
         }
         catch (ParseError)
@@ -53,10 +56,8 @@ public class Parser
         }
     }
 
-    private Statement.FunctionStatement Function()
+    private Statement.FunctionStatement Function(Token name, SeeMMType returnType)
     {
-        Token name = Consume(TokenType.IDENTIFIER, "Expect function name.");
-        Consume(TokenType.LEFT_PAREN, "Expect '(' after function name.");
         List<Token> parameters = new List<Token>();
         List<SeeMMType> parameterTypes = new List<SeeMMType>();
         if (!Check(TokenType.RIGHT_PAREN))
@@ -67,6 +68,7 @@ public class Parser
                 {
                     Error(Peek(), "Can't have more than 255 parameters.");
                 }
+
                 //find type and then the identifier
                 switch (Peek().type)
                 {
@@ -78,6 +80,7 @@ public class Parser
                             Consume(TokenType.RIGHT_SQUAREBRACKET, "Expect ']' after '['.");
                             parameterTypes[^1] = SeeMMType.INT_ARRAY;
                         }
+
                         break;
                     case TokenType.FLOAT:
                         parameterTypes.Add(SeeMMType.FLOAT);
@@ -87,6 +90,7 @@ public class Parser
                             Consume(TokenType.RIGHT_SQUAREBRACKET, "Expect ']' after '['.");
                             parameterTypes[^1] = SeeMMType.FLOAT_ARRAY;
                         }
+
                         break;
                     case TokenType.BOOL:
                         parameterTypes.Add(SeeMMType.BOOL);
@@ -96,6 +100,7 @@ public class Parser
                             Consume(TokenType.RIGHT_SQUAREBRACKET, "Expect ']' after '['.");
                             parameterTypes[^1] = SeeMMType.BOOL_ARRAY;
                         }
+
                         break;
                     default:
                         Error(Peek(), "Expect parameter type.");
@@ -106,53 +111,80 @@ public class Parser
                     Consume(TokenType.IDENTIFIER, "Expect parameter name."));
             } while (Match(TokenType.COMMA));
         }
+
         Consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
         Consume(TokenType.LEFT_BRACE, "Expect '{' before function body.");
         List<Statement> body = Block();
-        return new Statement.FunctionStatement(name, parameters, body, parameterTypes);
+        return new Statement.FunctionStatement(name, parameters, body, parameterTypes, returnType);
     }
 
-    private Statement VariableDeclaration(TokenType type)
+    private Statement VariableDeclaration(SeeMMType type)
     {
         if (Match(TokenType.LEFT_SQUAREBRACKET))
         {
             return ArrayDeclaration(type);
         }
+
         Token name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
+
+        //check if it's a function
+        if (Match(TokenType.LEFT_PAREN))
+        {
+            return Function(name , type);
+        }
+
         Expression initializer = null;
         if (Match(TokenType.EQUAL))
         {
             initializer = Expr();
         }
+
         Consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
         switch (type)
         {
-            case TokenType.INT:
+            case SeeMMType.INT:
                 return new Statement.IntStatement(name, initializer);
-            case TokenType.FLOAT:
+            case SeeMMType.FLOAT:
                 return new Statement.FloatStatement(name, initializer);
-            case TokenType.BOOL:
+            case SeeMMType.BOOL:
                 return new Statement.BoolStatement(name, initializer);
             default:
                 return null;
         }
     }
 
-    private Statement ArrayDeclaration(TokenType type)
+    private Statement ArrayDeclaration(SeeMMType type)
     {
+        type = type switch
+        {
+            SeeMMType.INT => SeeMMType.INT_ARRAY,
+            SeeMMType.FLOAT => SeeMMType.FLOAT_ARRAY,
+            SeeMMType.BOOL => SeeMMType.BOOL_ARRAY,
+            _ => type
+        };
+
         Consume(TokenType.RIGHT_SQUAREBRACKET, "Expect ']' after '['.");
         Token name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
-        List<Expression> initializer = new ();
+
+        //check if it's a function
+        if (Match(TokenType.LEFT_PAREN))
+        {
+            return Function(name ,type);
+        }
+
+        List<Expression> initializer = new();
         if (Match(TokenType.EQUAL))
         {
             Consume(TokenType.LEFT_BRACE, "Expect '{' after '='.");
-            initializer.Add( Expr());
+            initializer.Add(Expr());
             while (Match(TokenType.COMMA))
             {
-                initializer.Add( Expr());
+                initializer.Add(Expr());
             }
+
             Consume(TokenType.RIGHT_BRACE, "Expect '}' after array initializer.");
         }
+
         Consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
 
         return new Statement.ArrayStatement(name, name.seeMMType, initializer.ToArray(), initializer.Count);
@@ -181,6 +213,7 @@ public class Parser
         {
             elseBranch = Statement();
         }
+
         return new Statement.IfStatement(condition, thenBranch, elseBranch);
     }
 
@@ -192,17 +225,18 @@ public class Parser
         {
             value = Expr();
         }
+
         Consume(TokenType.SEMICOLON, "Expect ';' after return value.");
         return new Statement.ReturnStatement(keyword, value);
     }
-    
+
     private Statement BreakStatement()
     {
         Token keyword = Previous();
         Consume(TokenType.SEMICOLON, "Expect ';' after break.");
         return new Statement.BreakStatement(keyword);
     }
-    
+
     private Statement ContinueStatement()
     {
         Token keyword = Previous();
@@ -242,6 +276,7 @@ public class Parser
                 statements.Add(declaration);
             }
         }
+
         Consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
         return statements;
     }
@@ -257,27 +292,28 @@ public class Parser
         if (Match(TokenType.EQUAL))
         {
             Token equals = Previous();
-            
+
             if (Match(TokenType.LEFT_BRACE))
             {
                 if (expression is Expression.VariableExpression variableExpression)
                 {
                     var expressions = new List<Expression>();
                     var name = variableExpression.name;
-                    
+
                     expressions.Add(Assignment());
                     while (Match(TokenType.COMMA))
                     {
                         expressions.Add(Assignment());
                     }
 
-                    if(Match(TokenType.RIGHT_BRACE))
+                    if (Match(TokenType.RIGHT_BRACE))
                         return new Expression.ArrayAssignmentExpression(name, expressions.ToArray(), name.seeMMType);
                     Error(equals, "Expect '}' after array initializer.");
                 }
+
                 Error(equals, "Invalid assignment target.");
             }
-            
+
             Expression value = Assignment();
             switch (expression)
             {
@@ -297,6 +333,7 @@ public class Parser
                     break;
             }
         }
+
         return expression;
     }
 
@@ -309,6 +346,7 @@ public class Parser
             Expression right = And();
             expression = new Expression.LogicalExpression(expression, op, right);
         }
+
         return expression;
     }
 
@@ -321,6 +359,7 @@ public class Parser
             Expression right = Equality();
             expr = new Expression.LogicalExpression(expr, op, right);
         }
+
         return expr;
     }
 
@@ -333,6 +372,7 @@ public class Parser
             Expression right = Comparison();
             expr = new Expression.BinaryExpression(expr, op, right);
         }
+
         return expr;
     }
 
@@ -345,6 +385,7 @@ public class Parser
             Expression right = Term();
             expr = new Expression.BinaryExpression(expr, op, right);
         }
+
         return expr;
     }
 
@@ -357,6 +398,7 @@ public class Parser
             Expression right = Factor();
             expr = new Expression.BinaryExpression(expr, op, right);
         }
+
         return expr;
     }
 
@@ -369,6 +411,7 @@ public class Parser
             Expression right = Unary();
             expr = new Expression.BinaryExpression(expr, op, right);
         }
+
         return expr;
     }
 
@@ -380,6 +423,7 @@ public class Parser
             Expression right = Unary();
             return new Expression.UnaryExpression(op, right);
         }
+
         return Call();
     }
 
@@ -395,6 +439,7 @@ public class Parser
             }
             else break;
         }
+
         return expression;
     }
 
@@ -409,9 +454,11 @@ public class Parser
                 {
                     Error(Peek(), "Can't have more than 255 arguments.");
                 }
+
                 arguments.Add(Expr());
             } while (Match(TokenType.COMMA));
         }
+
         Token paren = Consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.");
         return new Expression.CallExpression(callee, paren, arguments);
     }
@@ -422,14 +469,17 @@ public class Parser
         {
             return new Expression.LiteralExpression(false);
         }
+
         if (Match(TokenType.TRUE))
         {
             return new Expression.LiteralExpression(true);
         }
+
         if (Match(TokenType.NUMBER))
         {
             return new Expression.LiteralExpression(Previous().literal);
         }
+
         if (Match(TokenType.IDENTIFIER))
         {
             var name = Previous();
@@ -439,8 +489,10 @@ public class Parser
                 Consume(TokenType.RIGHT_SQUAREBRACKET, "Expect ']' after index.");
                 return new Expression.ArrayExpression(name, index);
             }
+
             return new Expression.VariableExpression(name);
         }
+
         if (Match(TokenType.LEFT_PAREN))
         {
             Expression expr = Expr();
@@ -461,6 +513,7 @@ public class Parser
                 return true;
             }
         }
+
         return false;
     }
 
@@ -470,6 +523,7 @@ public class Parser
         {
             return false;
         }
+
         return Peek().type == type;
     }
 
@@ -479,6 +533,7 @@ public class Parser
         {
             current++;
         }
+
         return Previous();
     }
 
@@ -503,6 +558,7 @@ public class Parser
         {
             return Advance();
         }
+
         throw Error(Peek(), message);
     }
 
@@ -520,7 +576,6 @@ public class Parser
             if (Previous().type == TokenType.SEMICOLON) return;
             switch (Peek().type)
             {
-                case TokenType.FUNC:
                 case TokenType.IF:
                 case TokenType.BREAK:
                 case TokenType.CONTINUE:
@@ -528,9 +583,11 @@ public class Parser
                 case TokenType.INT:
                 case TokenType.FLOAT:
                 case TokenType.BOOL:
+                case TokenType.VOID:
                 case TokenType.WHILE:
                     return;
             }
+
             Advance();
         }
     }

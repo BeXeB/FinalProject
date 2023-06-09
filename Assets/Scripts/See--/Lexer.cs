@@ -16,7 +16,6 @@ public class Lexer
     {
         {"else", TokenType.ELSE},
         {"false", TokenType.FALSE},
-        {"function", TokenType.FUNC},
         {"if", TokenType.IF},
         {"break", TokenType.BREAK},
         {"continue", TokenType.CONTINUE},
@@ -25,6 +24,7 @@ public class Lexer
         {"int", TokenType.INT},
         {"float", TokenType.FLOAT},
         {"bool", TokenType.BOOL},
+        {"void", TokenType.VOID},
         {"while", TokenType.WHILE}
     };
 

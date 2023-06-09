@@ -54,18 +54,20 @@ public abstract class Statement
 
     public class FunctionStatement : Statement
     {
-        public FunctionStatement(Token name, List<Token> parameters, List<Statement> body, List<SeeMMType> argumentTypes)
+        public FunctionStatement(Token name, List<Token> parameters, List<Statement> body, List<SeeMMType> argumentTypes, SeeMMType returnType)
         {
             this.name = name;
             this.parameters = parameters;
             this.body = body;
             this.argumentTypes = argumentTypes;
+            this.returnType = returnType;
         }
         public override T Accept<T>(IStatementVisitor<T> visitor)
         {
             return visitor.VisitFunctionStatement(this);
         }
 
+        public readonly SeeMMType returnType;
         public readonly Token name;
         public readonly List<Token> parameters;
         public readonly List<SeeMMType> argumentTypes;

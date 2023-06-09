@@ -480,10 +480,9 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     public object VisitIntStatement(Statement.IntStatement statement)
     {
         object value = null;
-        if (statement.initializer != null)
-        {
-            value = Evaluate(statement.initializer);
-        }
+        
+        value = statement.initializer != null ? Evaluate(statement.initializer) : default(int);
+        
         if (value is not int && value is float leftAsFloat && leftAsFloat % 1 != 0)
         {
             throw new RuntimeError(statement.name, "Initializer must be an integer.");
@@ -496,10 +495,9 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     public object VisitFloatStatement(Statement.FloatStatement statement)
     {
         object value = null;
-        if (statement.initializer != null)
-        {
-            value = Evaluate(statement.initializer);
-        }
+        
+        value = statement.initializer != null ? Evaluate(statement.initializer) : default(float);
+        
         if (value is not float)
         {
             throw new RuntimeError(statement.name, "Initializer must be a floating point number.");
@@ -511,10 +509,9 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     public object VisitBoolStatement(Statement.BoolStatement statement)
     {
         object value = null;
-        if (statement.initializer != null)
-        {
-            value = Evaluate(statement.initializer);
-        }
+        
+        value = statement.initializer != null ? Evaluate(statement.initializer) : default(bool);
+        
         if (value is not bool)
         {
             throw new RuntimeError(statement.name, "Initializer must be a boolean.");
@@ -544,6 +541,7 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
                 array.Add(value);
             }
         }
+
         environment.Define(statement.name.textValue, array);
         return null;
     }

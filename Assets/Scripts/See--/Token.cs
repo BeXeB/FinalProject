@@ -24,15 +24,15 @@ public enum TokenType
     IDENTIFIER, NUMBER, 
 
     // Keywords.
-    ELSE, FALSE, FUNC, IF, BREAK, CONTINUE,
-    RETURN, TRUE, INT, FLOAT, BOOL, WHILE,
+    ELSE, FALSE, IF, BREAK, CONTINUE,
+    RETURN, TRUE, INT, FLOAT, BOOL, VOID, WHILE,
 
     EOF
 }
 
 public enum SeeMMType
 {
-    INT, FLOAT, BOOL, 
+    INT, FLOAT, BOOL, VOID,
     FLOAT_ARRAY, INT_ARRAY, BOOL_ARRAY,
     
     ANY, NONE
