@@ -18,5 +18,6 @@ public class SetAimFunction : ExternalFunction
             return null;
         };
         argumentTypes = new List<SeeMMType> {SeeMMType.FLOAT, SeeMMType.FLOAT};
+        returnType = SeeMMType.VOID;
     }
 }

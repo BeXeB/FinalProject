@@ -21,7 +21,7 @@ public enum TokenType
     AND, OR,
 
     // Literals.
-    IDENTIFIER, NUMBER, 
+    IDENTIFIER, INT_NUMBER, FLOAT_NUMBER,
 
     // Keywords.
     ELSE, FALSE, IF, BREAK, CONTINUE,

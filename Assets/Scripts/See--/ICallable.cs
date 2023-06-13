@@ -7,6 +7,7 @@ public interface ICallable
     public int Arity();
     public object Call(Interpreter interpreter, List<object> arguments);
     public List<SeeMMType> GetArgumentTypes();
+    public SeeMMType GetReturnType();
 }
 
 public class Clock : ICallable
@@ -24,6 +25,11 @@ public class Clock : ICallable
     public List<SeeMMType> GetArgumentTypes()
     {
         return new List<SeeMMType>();
+    }
+
+    public SeeMMType GetReturnType()
+    {
+        return SeeMMType.FLOAT;
     }
 }
 
@@ -48,19 +54,26 @@ public class Print : ICallable
     {
         return new List<SeeMMType> { SeeMMType.ANY };
     }
+
+    public SeeMMType GetReturnType()
+    {
+        return SeeMMType.VOID;
+    }
 }
 
 public class SeeMMExternalFunction : ICallable
 {
-    private int arity;
-    private List<SeeMMType> argumentTypes;
-    private Func<List<object>, object> unityEvent;
+    private readonly int arity;
+    private readonly List<SeeMMType> argumentTypes;
+    private readonly Func<List<object>, object> unityEvent;
+    private readonly SeeMMType returnType;
 
-    public SeeMMExternalFunction(int arity, Func<List<object>, object> unityEvent, List<SeeMMType> argumentTypes)
+    public SeeMMExternalFunction(int arity, Func<List<object>, object> unityEvent, List<SeeMMType> argumentTypes, SeeMMType returnType)
     {
         this.arity = arity;
         this.argumentTypes = argumentTypes;
         this.unityEvent = unityEvent;
+        this.returnType = returnType;
     }
 
     public int Arity()
@@ -76,6 +89,11 @@ public class SeeMMExternalFunction : ICallable
     public List<SeeMMType> GetArgumentTypes()
     {
         return argumentTypes;
+    }
+
+    public SeeMMType GetReturnType()
+    {
+        return returnType;
     }
 }
 
@@ -99,5 +117,10 @@ public class SizeOf : ICallable
     public List<SeeMMType> GetArgumentTypes()
     {
         return new List<SeeMMType> { SeeMMType.ANY };
+    }
+
+    public SeeMMType GetReturnType()
+    {
+        return SeeMMType.INT;
     }
 }

@@ -76,11 +76,12 @@ public abstract class Statement
 
     public class IfStatement : Statement
     {
-        public IfStatement(Expression condition, Statement thenBranch, Statement elseBranch)
+        public IfStatement(Expression condition, Statement thenBranch, Statement elseBranch, Token keyword)
         {
             this.condition = condition;
             this.thenBranch = thenBranch;
             this.elseBranch = elseBranch;
+            this.keyword = keyword;
         }
         public override T Accept<T>(IStatementVisitor<T> visitor)
         {
@@ -90,6 +91,7 @@ public abstract class Statement
         public readonly Expression condition;
         public readonly Statement thenBranch;
         public readonly Statement elseBranch;
+        public readonly Token keyword;
     }
 
     public class ReturnStatement : Statement
@@ -206,10 +208,11 @@ public abstract class Statement
 
     public class WhileStatement : Statement
     {
-        public WhileStatement(Expression condition, Statement body)
+        public WhileStatement(Expression condition, Statement body, Token keyword)
         {
             this.condition = condition;
             this.body = body;
+            this.keyword = keyword;
         }
         public override T Accept<T>(IStatementVisitor<T> visitor)
         {
@@ -218,5 +221,6 @@ public abstract class Statement
 
         public readonly Expression condition;
         public readonly Statement body;
+        public readonly Token keyword;
     }
 }

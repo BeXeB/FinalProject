@@ -56,20 +56,22 @@ public abstract class Expression
     }
     public class AssignmentExpression : Expression
     {
-        public AssignmentExpression(Token name, Expression value)
+        public AssignmentExpression(Token name, Expression value, SeeMMType type)
         {
             this.name = name;
             this.value = value;
             this.index = null;
+            this.type = type;
         }
         
-        public AssignmentExpression(Token name, Expression index, Expression value)
+        public AssignmentExpression(Token name, Expression index, Expression value, SeeMMType type)
         {
             this.name = name;
             this.index = index;
             this.value = value;
+            this.type = type;
         }
-        
+
         public override T Accept<T>(IExpressionVisitor<T> visitor)
         {
             return visitor.VisitAssignmentExpression(this);
@@ -78,6 +80,7 @@ public abstract class Expression
         public readonly Token name;
         public readonly Expression value;
         public readonly Expression index;
+        public readonly SeeMMType type;
     }
     
     public class ArrayAssignmentExpression : Expression
@@ -101,9 +104,10 @@ public abstract class Expression
     
     public class LiteralExpression : Expression
     {
-        public LiteralExpression(object value)
+        public LiteralExpression(object value, SeeMMType type)
         {
             this.value = value;
+            this.type = type;
         }
         public override T Accept<T>(IExpressionVisitor<T> visitor)
         {
@@ -111,6 +115,7 @@ public abstract class Expression
         }
 
         public readonly object value;
+        public readonly SeeMMType type;
     }
     public class GroupingExpression : Expression
     {

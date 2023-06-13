@@ -7,12 +7,14 @@ public class Function : ICallable
     private readonly Statement.FunctionStatement declaration;
     private readonly Environment closure;
     private readonly List<SeeMMType> argumentTypes;
+    private readonly SeeMMType returnType;
 
-    public Function(Statement.FunctionStatement declaration, Environment closure, List<SeeMMType> argumentTypes = null)
+    public Function(Statement.FunctionStatement declaration, Environment closure,  SeeMMType returnType, List<SeeMMType> argumentTypes = null)
     {
         this.closure = closure;
         this.declaration = declaration;
         this.argumentTypes = argumentTypes;
+        this.returnType = returnType;
     }
 
     public int Arity()
@@ -41,5 +43,10 @@ public class Function : ICallable
     public List<SeeMMType> GetArgumentTypes()
     {
         return argumentTypes;
+    }
+
+    public SeeMMType GetReturnType()
+    {
+        return returnType;
     }
 }

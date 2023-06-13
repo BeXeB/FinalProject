@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 public class Lexer
@@ -10,9 +11,14 @@ public class Lexer
     string code;
 
     List<Token> tokens;
-    private Dictionary<string, SeeMMType> identifiers = new ();
+    private Dictionary<string, SeeMMType> identifiers = new();
+    
+    public void SetIdentifiers(Dictionary<string, SeeMMType> identifiers)
+    {
+        this.identifiers = identifiers;
+    }
 
-    static Dictionary<string, TokenType> keyWords = new Dictionary<string, TokenType>()
+    static Dictionary<string, TokenType> keyWords = new()
     {
         {"else", TokenType.ELSE},
         {"false", TokenType.FALSE},
@@ -207,11 +213,17 @@ public class Lexer
             {
                 Advance();
             }
+            AddToken(TokenType.FLOAT_NUMBER, 
+                Convert.ToSingle(
+                    code.Substring(startIndex, currentIndex - startIndex), 
+                    CultureInfo.InvariantCulture));
+            return;
         }
-        AddToken(TokenType.NUMBER, 
-            Convert.ToSingle(
+        
+        AddToken(TokenType.INT_NUMBER, 
+            Convert.ToInt32(
                 code.Substring(startIndex, currentIndex - startIndex), 
-                System.Globalization.CultureInfo.InvariantCulture));
+                CultureInfo.InvariantCulture));
     }
 
     private void Identifier()
@@ -239,25 +251,53 @@ public class Lexer
             var isArray = false;
             if (!identifiers.ContainsKey(token.textValue))
             {
+                //if we dont have it we add it and change the type when we see it
                 var prevTokenType = tokens[^1].type;
                 if (prevTokenType == TokenType.RIGHT_SQUAREBRACKET)
                 {
                     prevTokenType = tokens[^3].type;
                     isArray = true;
                 }
+                
                 var seeMMType = GetSeeMMType(isArray, prevTokenType);
-                identifiers.Add(token.textValue, seeMMType);
+                
+                identifiers.Add(token.textValue, (seeMMType));
                 token.seeMMType = seeMMType;
             }
             else
             {
-                token.seeMMType = identifiers[token.textValue];
+                var identifierType = identifiers[token.textValue];
+                token.seeMMType = identifierType;
+
+                var prevTokenType = tokens[^1].type;
+                if (prevTokenType == TokenType.RIGHT_SQUAREBRACKET)
+                {
+                    prevTokenType = tokens[^3].type;
+                    isArray = true;
+                }
+
+                if (prevTokenType is TokenType.INT or TokenType.FLOAT or TokenType.VOID or TokenType.BOOL)
+                {
+                    var valueType = GetSeeMMType(isArray, prevTokenType);
+                    //go through all the tokens and change the type of the identifier
+                    for (int i = 0; i < tokens.Count; i++)
+                    {
+                        var t = tokens[i];
+                        if (t.textValue == token.textValue)
+                        {
+                            t.seeMMType = valueType;
+                            tokens[i] = t;
+                        }
+                    }
+                    identifiers[token.textValue] = valueType;
+                    token.seeMMType = valueType;
+                }
             }
         }
         tokens.Add(token);
     }
 
-    private static SeeMMType GetSeeMMType(bool isArray ,TokenType seeMMType)
+    private static SeeMMType GetSeeMMType(bool isArray, TokenType seeMMType)
     {
         switch (seeMMType)
         {
@@ -267,6 +307,8 @@ public class Lexer
                 return isArray ? SeeMMType.FLOAT_ARRAY : SeeMMType.FLOAT;
             case TokenType.BOOL:
                 return isArray ? SeeMMType.BOOL_ARRAY : SeeMMType.BOOL;
+            case TokenType.VOID:
+                return SeeMMType.VOID;
             default:
                 return SeeMMType.NONE;
         }

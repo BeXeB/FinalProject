@@ -17,5 +17,6 @@ public class SetTargetFunction : ExternalFunction
             return null;
         };
         argumentTypes = new List<SeeMMType> {SeeMMType.INT};
+        returnType = SeeMMType.VOID;
     }
 }

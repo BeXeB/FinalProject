@@ -24,24 +24,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // void Start()
-    // {
-    // interpreter = new Interpreter();
-    // lexer = new Lexer();
-    // var tokens = lexer.ScanCode(text.text);
-    //
-    // parser = new Parser(tokens);
-    // var statements = parser.Parse();
-    //
-    // resolver = new Resolver(interpreter);
-    // resolver.Resolve(statements);
-    // if (hadError || hadRuntimeError)
-    // {
-    //     return;
-    // }
-    // interpreter.InterpretCode(statements);
-    // }
-
     public static void Error(Token token, string message)
     {
         if (token.type == TokenType.EOF)

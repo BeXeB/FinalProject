@@ -13,5 +13,6 @@ public class GetIntruderLayerFunction : ExternalFunction
             return player.gameObject.layer;
         };
         argumentTypes = new List<SeeMMType> {};
+        returnType = SeeMMType.INT;
     }
 }

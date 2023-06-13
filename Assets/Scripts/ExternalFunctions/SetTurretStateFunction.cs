@@ -14,5 +14,6 @@ public class SetTurretStateFunction : ExternalFunction
             return null;
         };
         argumentTypes = new List<SeeMMType> {SeeMMType.BOOL};
+        returnType = SeeMMType.VOID;
     }
 }

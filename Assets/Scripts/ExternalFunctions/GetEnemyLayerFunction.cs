@@ -15,5 +15,6 @@ public class GetEnemyLayerFunction : ExternalFunction
             return turret.gameObject.layer;
         };
         argumentTypes = new List<SeeMMType> {};
+        returnType = SeeMMType.INT;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 public class CodeRunner : MonoBehaviour
@@ -75,16 +76,15 @@ public class CodeRunner : MonoBehaviour
         parser = new Parser();
         resolver = new Resolver();
         resolver.SetInterpreter(interpreter);
-        
+
         CheckAndReadCodeFile();
-        
+
         CheckCode(code);
-        
-        resolver.Resolve(statements);
-        interpreter.InterpretCode(statements);
+
+        interpreter.InterpretCode(statements); //TODO this causes the code to run twice
         interpreter.Evaluate(setupCallExpression);
     }
-    
+
     public void SetCodeFolder(string folderName)
     {
         codeFolderName = folderName;
@@ -146,7 +146,7 @@ public class CodeRunner : MonoBehaviour
         foreach (var func in externalFunctions)
         {
             extFunctions.Add(func.functionName,
-                new SeeMMExternalFunction(func.arity, func.function, func.argumentTypes));
+                new SeeMMExternalFunction(func.arity, func.function, func.argumentTypes, func.returnType));
         }
     }
 
@@ -189,6 +189,7 @@ public class CodeRunner : MonoBehaviour
             {
                 continue;
             }
+
             variable.literal = value;
             extVariableTokens[i] = variable;
             //handle the change
@@ -199,9 +200,56 @@ public class CodeRunner : MonoBehaviour
 
     public void CheckCode(string code)
     {
+        //get the type of the global and external functions and variables
+        //add them to the lexer
+        
+        Dictionary<string, SeeMMType> extIdentifiers = new();
+
+        foreach (var varToken in extVariableTokens)
+        {
+            extIdentifiers.Add(varToken.textValue, varToken.seeMMType);
+        }
+        
+        foreach (var func in extFunctions)
+        {
+            extIdentifiers.Add(func.Key, func.Value.GetReturnType());
+        }
+
+        foreach (var globFunc in interpreter.GetGlobalFunctions())
+        {
+            extIdentifiers.Add(globFunc.Key, globFunc.Value.GetReturnType());
+        }
+        
+        lexer.SetIdentifiers(extIdentifiers);
         tokens = lexer.ScanCode(code);
         parser.SetTokens(tokens);
         statements = parser.Parse();
+        
+        Dictionary<string, List<SeeMMType>> functions = new();
+
+        foreach (var statement in statements)
+        {
+            if (statement is Statement.FunctionStatement functionStatement)
+            {
+                var funcName = functionStatement.name.textValue;
+                var funcArgs = functionStatement.parameters.Select(x => x.seeMMType).ToList();
+                functions.Add(funcName, funcArgs);
+            }
+        }
+
+        foreach (var func in extFunctions)
+        {
+            functions.Add(func.Key, func.Value.GetArgumentTypes());
+        }
+
+        foreach (var func in interpreter.GetGlobalFunctions())
+        {
+            functions.Add(func.Key, func.Value.GetArgumentTypes());
+        }
+        
+        resolver.Clear();
+        resolver.AddExtAndGlobalFunctions(functions);
+        resolver.Resolve(statements);
     }
 
     private IEnumerator RunCode()
@@ -224,8 +272,7 @@ public class CodeRunner : MonoBehaviour
     {
         interpreter.InitGlobals(extFunctions, extVariableTokens);
         CheckCode(editorCode);
-        resolver.Resolve(statements);
-        interpreter.InterpretCode(statements);
+        interpreter.InterpretCode(statements); //TODO this causes the code to run twice
 
         try
         {
@@ -262,6 +309,7 @@ public class CodeRunner : MonoBehaviour
                             _ => throw new ArgumentOutOfRangeException()
                         });
                     }
+
                     newValue = temp;
                 }
                 else

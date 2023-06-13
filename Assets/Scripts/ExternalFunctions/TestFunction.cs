@@ -11,5 +11,6 @@ public class TestFunction : ExternalFunction
             return Convert.ToSingle(args[0], CultureInfo.InvariantCulture) + Convert.ToSingle(args[1], CultureInfo.InvariantCulture);
         };
         argumentTypes = new List<SeeMMType> {SeeMMType.FLOAT, SeeMMType.FLOAT};
+        returnType = SeeMMType.FLOAT;
     }
 }

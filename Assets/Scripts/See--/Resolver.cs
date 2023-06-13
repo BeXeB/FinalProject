@@ -1,19 +1,33 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Linq;
 
-public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatementVisitor<object>
+public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.IStatementVisitor<object>
 {
     private Interpreter interpreter;
     private readonly Stack<Dictionary<string, bool>> scopes = new();
-    private FunctionType currentFunction = FunctionType.NONE;
+    private (FunctionType type, Statement.FunctionStatement expression) currentFunction = (FunctionType.NONE, null);
     private bool isInLoop = false;
+    private Dictionary<string, List<SeeMMType>> functions = new();
 
-    
     public void SetInterpreter(Interpreter interpreter)
     {
         this.interpreter = interpreter;
+    }
+
+    public void Clear()
+    {
+        functions.Clear();
+        isInLoop = false;
+        currentFunction = (FunctionType.NONE, null);
+        scopes.Clear();
+    }
+    
+    public void AddExtAndGlobalFunctions(Dictionary<string, List<SeeMMType>> extFunctions)
+    {
+        foreach (var extFunction in extFunctions)
+        {
+            functions.Add(extFunction.Key, extFunction.Value);
+        }
     }
 
     private enum FunctionType
@@ -35,7 +49,11 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         Declare(statement.name);
         if (statement.initializer != null)
         {
-            Resolve(statement.initializer);
+            var valueType = Resolve(statement.initializer);
+            if (valueType is not SeeMMType.BOOL)
+            {
+                GameManager.Error(statement.name, $"Can't assign {valueType} to bool.");
+            }
         }
         Define(statement.name);
         return null;
@@ -46,7 +64,11 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         Declare(statement.name);
         if (statement.initializer != null)
         {
-            Resolve(statement.initializer);
+            var valueType = Resolve(statement.initializer);
+            if (valueType is not SeeMMType.FLOAT && valueType is not SeeMMType.INT)
+            {
+                GameManager.Error(statement.name, $"Can't assign {valueType} to float.");
+            }
         }
         Define(statement.name);
         return null;
@@ -57,7 +79,11 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         Declare(statement.name);
         if (statement.initializer != null)
         {
-            Resolve(statement.initializer);
+            var valueType = Resolve(statement.initializer);
+            if (valueType is not SeeMMType.INT)
+            {
+                GameManager.Error(statement.name, $"Can't assign {valueType} to int.");
+            }
         }
         Define(statement.name);
         return null;
@@ -68,7 +94,31 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         Declare(statement.name);
         if (statement.initializer != null)
         {
-            Resolve(statement.initializer);
+            foreach (var expression in statement.initializer)
+            {
+                var valueType = Resolve(expression);
+                switch (statement.type)
+                {
+                    case SeeMMType.INT_ARRAY:
+                        if (valueType is not SeeMMType.INT)
+                        {
+                            GameManager.Error(statement.name, $"Can't assign {valueType} to int array.");
+                        }
+                        break;
+                    case SeeMMType.FLOAT_ARRAY:
+                        if (valueType is not SeeMMType.FLOAT && valueType is not SeeMMType.INT)
+                        {
+                            GameManager.Error(statement.name, $"Can't assign {valueType} to float array.");
+                        }
+                        break;
+                    case SeeMMType.BOOL_ARRAY:
+                        if (valueType is not SeeMMType.BOOL)
+                        {
+                            GameManager.Error(statement.name, $"Can't assign {valueType} to bool array.");
+                        }
+                        break;
+                }
+            }
         }
         Define(statement.name);
         return null;
@@ -100,7 +150,7 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
 
     public object VisitFunctionStatement(Statement.FunctionStatement statement)
     {
-        if (currentFunction != FunctionType.NONE)
+        if (currentFunction.type != FunctionType.NONE)
         {
             GameManager.Error(statement.name, "Can't nest functions.");
         }
@@ -112,7 +162,12 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
 
     public object VisitIfStatement(Statement.IfStatement statement)
     {
-        Resolve(statement.condition);
+        //TODO check if condition is bool
+        var condType = Resolve(statement.condition);
+        if (condType is not SeeMMType.BOOL)
+        {
+            GameManager.Error(statement.keyword, "Condition must be a bool.");
+        }
         Resolve(statement.thenBranch);
         if (statement.elseBranch != null)
         {
@@ -123,85 +178,201 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
 
     public object VisitReturnStatement(Statement.ReturnStatement statement)
     {
-        if (currentFunction == FunctionType.NONE)
+        if (currentFunction.type == FunctionType.NONE)
         {
             GameManager.Error(statement.keyword, "Can't return from top-level code.");
         }
+
+        var valueType = SeeMMType.NONE;
         if (statement.value != null)
         {
-            Resolve(statement.value);
+           valueType = Resolve(statement.value);
         }
+        
+        var returnType = currentFunction.expression.returnType;
+
+        if (valueType != returnType)
+        {
+            GameManager.Error(statement.keyword, $"Can't return {valueType} from {returnType} function.");
+        }
+        
         return null;
     }
 
     public object VisitWhileStatement(Statement.WhileStatement statement)
     {
         isInLoop = true;
-        Resolve(statement.condition);
+        var condType = Resolve(statement.condition);
+        
+        if (condType is not SeeMMType.BOOL)
+        {
+            GameManager.Error(statement.keyword, "Condition must be a bool.");
+        }
+        
         Resolve(statement.body);
         isInLoop = false;
         return null;
     }
 
-    public object VisitAssignmentExpression(Expression.AssignmentExpression expression)
+    public SeeMMType VisitAssignmentExpression(Expression.AssignmentExpression expression)
     {
-        Resolve(expression.value);
+        var valueType = Resolve(expression.value);
+        
+        switch (expression.type)
+        {
+            case SeeMMType.INT:
+                if (valueType is not SeeMMType.INT)
+                {
+                    GameManager.Error(expression.name, $"Can't assign {valueType} to int.");
+                }
+                break;
+            case SeeMMType.FLOAT:
+                if (valueType is not SeeMMType.FLOAT && valueType is not SeeMMType.INT)
+                {
+                    GameManager.Error(expression.name, $"Can't assign {valueType} to float.");
+                }
+                break;
+            case SeeMMType.BOOL:
+                if (valueType is not SeeMMType.BOOL)
+                {
+                    GameManager.Error(expression.name, $"Can't assign {valueType} to bool.");
+                }
+                break;
+        }
+        
         ResolveLocal(expression, expression.name);
-        return null;
+        return expression.type;
     }
 
-    public object VisitArrayAssignmentExpression(Expression.ArrayAssignmentExpression expression)
+    public SeeMMType VisitArrayAssignmentExpression(Expression.ArrayAssignmentExpression expression)
     {
         foreach (var value in expression.values)
         {
-            Resolve(value);
+            var valueType = Resolve(value);
+            switch (expression.type)
+            {
+                case SeeMMType.INT_ARRAY:
+                    if (valueType is not SeeMMType.INT)
+                    {
+                        GameManager.Error(expression.name, $"Can't assign {valueType} to int array.");
+                    }
+                    break;
+                case SeeMMType.FLOAT_ARRAY:
+                    if (valueType is not SeeMMType.FLOAT && valueType is not SeeMMType.INT)
+                    {
+                        GameManager.Error(expression.name, $"Can't assign {valueType} to float array.");
+                    }
+                    break;
+                case SeeMMType.BOOL_ARRAY:
+                    if (valueType is not SeeMMType.BOOL)
+                    {
+                        GameManager.Error(expression.name, $"Can't assign {valueType} to bool array.");
+                    }
+                    break;
+            }
         }
         ResolveLocal(expression, expression.name);
-        return null;
+        return expression.type;
     }
 
-    public object VisitBinaryExpression(Expression.BinaryExpression expression)
+    public SeeMMType VisitBinaryExpression(Expression.BinaryExpression expression)
     {
-        Resolve(expression.right);
-        Resolve(expression.left);
-        return null;
-    }
+        var rightType = Resolve(expression.right);
+        var leftType = Resolve(expression.left);
 
-    public object VisitCallExpression(Expression.CallExpression expression)
-    {
-        Resolve(expression.callee);
-        foreach (Expression argument in expression.arguments)
+        switch (expression.op.type)
         {
-            Resolve(argument);
+            case TokenType.EQUAL_EQUAL:
+            case TokenType.NOT_EQUAL:
+                switch (rightType)
+                {
+                    case SeeMMType.BOOL when leftType is SeeMMType.BOOL:
+                    case SeeMMType.INT or SeeMMType.FLOAT when leftType is SeeMMType.INT or SeeMMType.FLOAT:
+                        return SeeMMType.BOOL;
+                    case SeeMMType.BOOL:
+                    case SeeMMType.INT or SeeMMType.FLOAT:
+                        GameManager.Error(expression.op, $"Operator can't be applied to {rightType} and {leftType}.");
+                        break;
+                }
+                break;
+            
+            case TokenType.GREATER:
+            case TokenType.GREATER_EQUAL:
+            case TokenType.LESS: 
+            case TokenType.LESS_EQUAL:
+                if (rightType is SeeMMType.INT or SeeMMType.FLOAT && leftType is SeeMMType.INT or SeeMMType.FLOAT)
+                {
+                    return SeeMMType.BOOL;
+                }
+                GameManager.Error(expression.op, "Operands must be numbers.");
+                break;
+            
+            case TokenType.MINUS: 
+            case TokenType.PLUS:
+            case TokenType.SLASH: 
+            case TokenType.STAR: 
+            case TokenType.MOD:
+                switch (rightType)
+                {
+                    case SeeMMType.INT when leftType is SeeMMType.INT:
+                        return SeeMMType.INT;
+                    case SeeMMType.FLOAT when leftType is SeeMMType.FLOAT or SeeMMType.INT:
+                    case SeeMMType.INT when leftType is SeeMMType.FLOAT:
+                        return SeeMMType.FLOAT;
+                }
+                GameManager.Error(expression.op, $"Operator can't be applied to {rightType} and {leftType}.");
+                break;
         }
-        return null;
+
+        return SeeMMType.BOOL;
     }
 
-    public object VisitGroupingExpression(Expression.GroupingExpression expression)
+    public SeeMMType VisitCallExpression(Expression.CallExpression expression)
     {
-        Resolve(expression.expression);
-        return null;
+        if (!functions.TryGetValue(((Expression.VariableExpression)expression.callee).name.textValue, out var func))
+        {
+            GameManager.Error(expression.paren, "Undefined function.");
+            return SeeMMType.NONE;
+        }
+
+        var returnType = Resolve(expression.callee);
+        for (var index = 0; index < expression.arguments.Count; index++)
+        {
+            var argument = expression.arguments[index];
+            var argType = Resolve(argument);
+            if (func[index] != SeeMMType.ANY && argType != func[index])
+            {
+                GameManager.Error(expression.paren, $"Expected {func[index]} but got {argType}.");
+            }
+        }
+        
+        return returnType;
     }
 
-    public object VisitLiteralExpression(Expression.LiteralExpression expression)
+    public SeeMMType VisitGroupingExpression(Expression.GroupingExpression expression)
     {
-        return null;
+        return Resolve(expression.expression);;
     }
 
-    public object VisitLogicalExpression(Expression.LogicalExpression expression)
+    public SeeMMType VisitLiteralExpression(Expression.LiteralExpression expression)
+    {
+        return expression.type;
+    }
+
+    public SeeMMType VisitLogicalExpression(Expression.LogicalExpression expression)
     {
         Resolve(expression.left);
         Resolve(expression.right);
-        return null;
+        return SeeMMType.BOOL;
     }
 
-    public object VisitUnaryExpression(Expression.UnaryExpression expression)
+    public SeeMMType VisitUnaryExpression(Expression.UnaryExpression expression)
     {
-        Resolve(expression.expression);
-        return null;
+        var expressionType = Resolve(expression.expression);
+        return expressionType;
     }
 
-    public object VisitVariableExpression(Expression.VariableExpression expression)
+    public SeeMMType VisitVariableExpression(Expression.VariableExpression expression)
     {
         if (scopes.TryPeek(out Dictionary<string, bool> scope) &&
             scope.TryGetValue(expression.name.textValue, out bool value)
@@ -210,10 +381,10 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
             GameManager.Error(expression.name, "Can't read local variable in its own initializer.");
         }
         ResolveLocal(expression, expression.name);
-        return null;
+        return expression.name.seeMMType;
     }
     
-    public object VisitArrayExpression(Expression.ArrayExpression expression)
+    public SeeMMType VisitArrayExpression(Expression.ArrayExpression expression)
     {
         if (scopes.TryPeek(out Dictionary<string, bool> scope) &&
             scope.TryGetValue(expression.name.textValue, out bool value)
@@ -221,8 +392,23 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         {
             GameManager.Error(expression.name, "Can't read local variable in its own initializer.");
         }
+
+        var indexType = expression.index.Accept(this);
+        
+        if (indexType != SeeMMType.INT)
+        {
+            GameManager.Error(expression.name, "Index must be an integer.");
+        }
+        
         ResolveLocal(expression, expression.name);
-        return null;
+
+        return expression.name.seeMMType switch 
+        {
+            SeeMMType.INT_ARRAY => SeeMMType.INT,
+            SeeMMType.FLOAT_ARRAY => SeeMMType.FLOAT,
+            SeeMMType.BOOL_ARRAY => SeeMMType.BOOL,
+            _ => SeeMMType.NONE
+        };
     }
 
     public void Resolve(List<Statement> statements)
@@ -238,17 +424,9 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         statement.Accept(this);
     }
 
-    private void Resolve(Expression expression)
+    private SeeMMType Resolve(Expression expression)
     {
-        expression.Accept(this);
-    }
-    
-    private void Resolve(IEnumerable<Expression> expressions)
-    {
-        foreach (var expression in expressions)
-        {
-            expression.Accept(this);
-        }
+        return expression.Accept(this);
     }
 
     private void ResolveLocal(Expression expr, Token name)
@@ -265,7 +443,8 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
 
     private void ResolveFunction(Statement.FunctionStatement function, FunctionType type)
     {
-        currentFunction = type;
+        currentFunction.type = type;
+        currentFunction.expression = function;
         BeginScope();
         foreach (Token param in function.parameters)
         {
@@ -274,7 +453,8 @@ public class Resolver : Expression.IExpressionVisitor<object>, Statement.IStatem
         }
         Resolve(function.body);
         EndScope();
-        currentFunction = FunctionType.NONE;
+        currentFunction.type = FunctionType.NONE;
+        currentFunction.expression = null;
     }
 
     private void BeginScope()

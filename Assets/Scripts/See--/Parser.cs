@@ -1,12 +1,8 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class Parser
 {
-    private class ParseError : System.Exception
-    {
-    }
+    private class ParseError : System.Exception { }
 
     private List<Token> tokens;
     private int current = 0;
@@ -204,6 +200,7 @@ public class Parser
 
     private Statement IfStatement()
     {
+        var keyword = Previous();
         Consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
         Expression condition = Expr();
         Consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
@@ -214,7 +211,7 @@ public class Parser
             elseBranch = Statement();
         }
 
-        return new Statement.IfStatement(condition, thenBranch, elseBranch);
+        return new Statement.IfStatement(condition, thenBranch, elseBranch, keyword);
     }
 
     private Statement ReturnStatement()
@@ -253,11 +250,12 @@ public class Parser
 
     private Statement WhileStatement()
     {
+        var keyword = Previous();
         Consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
         Expression condition = Expr();
         Consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
         Statement body = Statement();
-        return new Statement.WhileStatement(condition, body);
+        return new Statement.WhileStatement(condition, body, keyword);
     }
 
     private List<Statement> Block()
@@ -320,13 +318,13 @@ public class Parser
                 case Expression.VariableExpression variableExpression:
                 {
                     Token name = variableExpression.name;
-                    return new Expression.AssignmentExpression(name, value);
+                    return new Expression.AssignmentExpression(name, value, name.seeMMType);
                 }
                 case Expression.ArrayExpression arrayExpression:
                 {
                     Token name = arrayExpression.name;
                     Expression index = arrayExpression.index;
-                    return new Expression.AssignmentExpression(name, index, value);
+                    return new Expression.AssignmentExpression(name, index, value, name.seeMMType);
                 }
                 default:
                     Error(equals, "Invalid assignment target.");
@@ -430,14 +428,10 @@ public class Parser
     private Expression Call()
     {
         Expression expression = Primary();
-
-        while (true)
+        
+        if (Match(TokenType.LEFT_PAREN))
         {
-            if (Match(TokenType.LEFT_PAREN))
-            {
-                expression = FinishCall(expression);
-            }
-            else break;
+            expression = FinishCall(expression);
         }
 
         return expression;
@@ -467,17 +461,22 @@ public class Parser
     {
         if (Match(TokenType.FALSE))
         {
-            return new Expression.LiteralExpression(false);
+            return new Expression.LiteralExpression(false, SeeMMType.BOOL);
         }
 
         if (Match(TokenType.TRUE))
         {
-            return new Expression.LiteralExpression(true);
+            return new Expression.LiteralExpression(true, SeeMMType.BOOL);
         }
 
-        if (Match(TokenType.NUMBER))
+        if (Match(TokenType.INT_NUMBER))
         {
-            return new Expression.LiteralExpression(Previous().literal);
+            return new Expression.LiteralExpression(Previous().literal, SeeMMType.INT);
+        }
+        
+        if (Match(TokenType.FLOAT_NUMBER))
+        {
+            return new Expression.LiteralExpression(Previous().literal, SeeMMType.FLOAT);
         }
 
         if (Match(TokenType.IDENTIFIER))
