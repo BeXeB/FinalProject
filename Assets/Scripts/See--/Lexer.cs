@@ -123,7 +123,7 @@ public class Lexer
                 }
                 else
                 {
-                    Debug.Log("Unexpected character.");
+                    GameManager.Error(new Token { line = line },"Unexpected character.");
                 }
                 break;
             case '|':
@@ -133,7 +133,7 @@ public class Lexer
                 }
                 else
                 {
-                    Debug.Log("Unexpected character.");
+                    GameManager.Error(new Token { line = line },"Unexpected character.");
                 }
                 break;
             case ' ':
@@ -154,7 +154,7 @@ public class Lexer
                 }
                 else
                 {
-                    Debug.Log("Unexpected character.");
+                    GameManager.Error(new Token { line = line },"Unexpected character.");
                 }
                 break;
         }

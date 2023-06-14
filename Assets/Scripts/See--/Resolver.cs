@@ -1,8 +1,16 @@
 using System.Collections.Generic;
-using System.Linq;
 
 public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.IStatementVisitor<object>
 {
+    public class TypeError: System.Exception
+    {
+        public Token token;
+        public TypeError(Token token,string message) : base(message)
+        {
+            this.token = token;
+        }
+    }
+    
     private Interpreter interpreter;
     private readonly Stack<Dictionary<string, bool>> scopes = new();
     private (FunctionType type, Statement.FunctionStatement expression) currentFunction = (FunctionType.NONE, null);
@@ -52,7 +60,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
             var valueType = Resolve(statement.initializer);
             if (valueType is not SeeMMType.BOOL)
             {
-                GameManager.Error(statement.name, $"Can't assign {valueType} to bool.");
+                throw new TypeError(statement.name, $"Can't assign {valueType} to bool.");
             }
         }
         Define(statement.name);
@@ -67,7 +75,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
             var valueType = Resolve(statement.initializer);
             if (valueType is not SeeMMType.FLOAT && valueType is not SeeMMType.INT)
             {
-                GameManager.Error(statement.name, $"Can't assign {valueType} to float.");
+                throw new TypeError(statement.name, $"Can't assign {valueType} to float.");
             }
         }
         Define(statement.name);
@@ -82,7 +90,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
             var valueType = Resolve(statement.initializer);
             if (valueType is not SeeMMType.INT)
             {
-                GameManager.Error(statement.name, $"Can't assign {valueType} to int.");
+                throw new TypeError(statement.name, $"Can't assign {valueType} to int.");
             }
         }
         Define(statement.name);
@@ -102,19 +110,19 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
                     case SeeMMType.INT_ARRAY:
                         if (valueType is not SeeMMType.INT)
                         {
-                            GameManager.Error(statement.name, $"Can't assign {valueType} to int array.");
+                            throw new TypeError(statement.name, $"Can't assign {valueType} to int array.");
                         }
                         break;
                     case SeeMMType.FLOAT_ARRAY:
                         if (valueType is not SeeMMType.FLOAT && valueType is not SeeMMType.INT)
                         {
-                            GameManager.Error(statement.name, $"Can't assign {valueType} to float array.");
+                            throw new TypeError(statement.name, $"Can't assign {valueType} to float array.");
                         }
                         break;
                     case SeeMMType.BOOL_ARRAY:
                         if (valueType is not SeeMMType.BOOL)
                         {
-                            GameManager.Error(statement.name, $"Can't assign {valueType} to bool array.");
+                            throw new TypeError(statement.name, $"Can't assign {valueType} to bool array.");
                         }
                         break;
                 }
@@ -128,7 +136,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
     {
         if (!isInLoop)
         {
-            GameManager.Error(statement.keyword, "Can't break when not inside loop.");
+            throw new TypeError(statement.keyword, "Can't break when not inside loop.");
         }
         return null;
     }
@@ -137,7 +145,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
     {
         if (!isInLoop)
         {
-            GameManager.Error(statement.keyword, "Can't continue when not inside loop.");
+            throw new TypeError(statement.keyword, "Can't continue when not inside loop.");
         }
         return null;
     }
@@ -152,7 +160,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
     {
         if (currentFunction.type != FunctionType.NONE)
         {
-            GameManager.Error(statement.name, "Can't nest functions.");
+            throw new TypeError(statement.name, "Can't nest functions.");
         }
         Declare(statement.name);
         Define(statement.name);
@@ -162,11 +170,10 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
 
     public object VisitIfStatement(Statement.IfStatement statement)
     {
-        //TODO check if condition is bool
         var condType = Resolve(statement.condition);
         if (condType is not SeeMMType.BOOL)
         {
-            GameManager.Error(statement.keyword, "Condition must be a bool.");
+            throw new TypeError(statement.keyword, "Condition must be a bool.");
         }
         Resolve(statement.thenBranch);
         if (statement.elseBranch != null)
@@ -180,10 +187,10 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
     {
         if (currentFunction.type == FunctionType.NONE)
         {
-            GameManager.Error(statement.keyword, "Can't return from top-level code.");
+            throw new TypeError(statement.keyword, "Can't return from top-level code.");
         }
 
-        var valueType = SeeMMType.NONE;
+        var valueType = SeeMMType.VOID;
         if (statement.value != null)
         {
            valueType = Resolve(statement.value);
@@ -193,7 +200,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
 
         if (valueType != returnType)
         {
-            GameManager.Error(statement.keyword, $"Can't return {valueType} from {returnType} function.");
+            throw new TypeError(statement.keyword, $"Can't return {valueType} from {returnType} function.");
         }
         
         return null;
@@ -206,7 +213,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
         
         if (condType is not SeeMMType.BOOL)
         {
-            GameManager.Error(statement.keyword, "Condition must be a bool.");
+            throw new TypeError(statement.keyword, "Condition must be a bool.");
         }
         
         Resolve(statement.body);
@@ -223,21 +230,25 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
             case SeeMMType.INT:
                 if (valueType is not SeeMMType.INT)
                 {
-                    GameManager.Error(expression.name, $"Can't assign {valueType} to int.");
+                    throw new TypeError(expression.name, $"Can't assign {valueType} to int.");
                 }
                 break;
             case SeeMMType.FLOAT:
                 if (valueType is not SeeMMType.FLOAT && valueType is not SeeMMType.INT)
                 {
-                    GameManager.Error(expression.name, $"Can't assign {valueType} to float.");
+                    throw new TypeError(expression.name, $"Can't assign {valueType} to float.");
                 }
                 break;
             case SeeMMType.BOOL:
                 if (valueType is not SeeMMType.BOOL)
                 {
-                    GameManager.Error(expression.name, $"Can't assign {valueType} to bool.");
+                    throw new TypeError(expression.name, $"Can't assign {valueType} to bool.");
                 }
                 break;
+            case SeeMMType.INT_ARRAY:
+            case SeeMMType.FLOAT_ARRAY:
+            case SeeMMType.BOOL_ARRAY:
+                throw new TypeError(expression.name, $"Can't assign {valueType} to array");
         }
         
         ResolveLocal(expression, expression.name);
@@ -254,19 +265,19 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
                 case SeeMMType.INT_ARRAY:
                     if (valueType is not SeeMMType.INT)
                     {
-                        GameManager.Error(expression.name, $"Can't assign {valueType} to int array.");
+                        throw new TypeError(expression.name, $"Can't assign {valueType} to int array.");
                     }
                     break;
                 case SeeMMType.FLOAT_ARRAY:
                     if (valueType is not SeeMMType.FLOAT && valueType is not SeeMMType.INT)
                     {
-                        GameManager.Error(expression.name, $"Can't assign {valueType} to float array.");
+                        throw new TypeError(expression.name, $"Can't assign {valueType} to float array.");
                     }
                     break;
                 case SeeMMType.BOOL_ARRAY:
                     if (valueType is not SeeMMType.BOOL)
                     {
-                        GameManager.Error(expression.name, $"Can't assign {valueType} to bool array.");
+                        throw new TypeError(expression.name, $"Can't assign {valueType} to bool array.");
                     }
                     break;
             }
@@ -291,7 +302,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
                         return SeeMMType.BOOL;
                     case SeeMMType.BOOL:
                     case SeeMMType.INT or SeeMMType.FLOAT:
-                        GameManager.Error(expression.op, $"Operator can't be applied to {rightType} and {leftType}.");
+                        throw new TypeError(expression.op, $"Operator can't be applied to {rightType} and {leftType}.");
                         break;
                 }
                 break;
@@ -304,7 +315,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
                 {
                     return SeeMMType.BOOL;
                 }
-                GameManager.Error(expression.op, "Operands must be numbers.");
+                throw new TypeError(expression.op, "Operands must be numbers.");
                 break;
             
             case TokenType.MINUS: 
@@ -320,7 +331,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
                     case SeeMMType.INT when leftType is SeeMMType.FLOAT:
                         return SeeMMType.FLOAT;
                 }
-                GameManager.Error(expression.op, $"Operator can't be applied to {rightType} and {leftType}.");
+                throw new TypeError(expression.op, $"Operator can't be applied to {rightType} and {leftType}.");
                 break;
         }
 
@@ -331,7 +342,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
     {
         if (!functions.TryGetValue(((Expression.VariableExpression)expression.callee).name.textValue, out var func))
         {
-            GameManager.Error(expression.paren, "Undefined function.");
+            throw new TypeError(expression.paren, "Undefined function.");
             return SeeMMType.NONE;
         }
 
@@ -342,7 +353,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
             var argType = Resolve(argument);
             if (func[index] != SeeMMType.ANY && argType != func[index])
             {
-                GameManager.Error(expression.paren, $"Expected {func[index]} but got {argType}.");
+                throw new TypeError(expression.paren, $"Expected {func[index]} but got {argType}.");
             }
         }
         
@@ -378,7 +389,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
             scope.TryGetValue(expression.name.textValue, out bool value)
             && value == false)
         {
-            GameManager.Error(expression.name, "Can't read local variable in its own initializer.");
+            throw new TypeError(expression.name, "Can't read local variable in its own initializer.");
         }
         ResolveLocal(expression, expression.name);
         return expression.name.seeMMType;
@@ -390,14 +401,14 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
             scope.TryGetValue(expression.name.textValue, out bool value)
             && value == false)
         {
-            GameManager.Error(expression.name, "Can't read local variable in its own initializer.");
+            throw new TypeError(expression.name, "Can't read local variable in its own initializer.");
         }
 
         var indexType = expression.index.Accept(this);
         
         if (indexType != SeeMMType.INT)
         {
-            GameManager.Error(expression.name, "Index must be an integer.");
+            throw new TypeError(expression.name, "Index must be an integer.");
         }
         
         ResolveLocal(expression, expression.name);
@@ -421,7 +432,14 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
 
     private void Resolve(Statement statement)
     {
-        statement.Accept(this);
+        try
+        {
+            statement.Accept(this);
+        }
+        catch (TypeError e)
+        {
+            GameManager.Error(e.token, e.Message);
+        }
     }
 
     private SeeMMType Resolve(Expression expression)
@@ -479,7 +497,7 @@ public class Resolver : Expression.IExpressionVisitor<SeeMMType>, Statement.ISta
         {
             if (sc.ContainsKey(name.textValue))
             {
-                GameManager.Error(name, "Variable with this name already exists in this scope.");
+                throw new TypeError(name, "Variable with this name already exists in this scope.");
             }
         }
         

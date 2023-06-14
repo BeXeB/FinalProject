@@ -319,8 +319,9 @@ public class Interpreter : Expression.IExpressionVisitor<object>, Statement.ISta
     private bool CheckIntegerOperands(object left, object right)
     {
         return 
-            (left is int || left is float leftAsFloat && leftAsFloat % 1 == 0) && 
-            (right is int || right is float rightAsFloat && rightAsFloat % 1 == 0);
+            // (left is int || left is float leftAsFloat && leftAsFloat % 1 == 0) && 
+            // (right is int || right is float rightAsFloat && rightAsFloat % 1 == 0);
+            left is int && right is int;
     }
 
     private void CheckNumberOperand(object operand, Token op)

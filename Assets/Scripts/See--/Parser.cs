@@ -39,11 +39,15 @@ public class Parser
     {
         try
         {
-            if (Match(TokenType.INT)) return VariableDeclaration(SeeMMType.INT);
-            if (Match(TokenType.FLOAT)) return VariableDeclaration(SeeMMType.FLOAT);
-            if (Match(TokenType.BOOL)) return VariableDeclaration(SeeMMType.BOOL);
-            if (Match(TokenType.VOID)) return VariableDeclaration(SeeMMType.VOID);
-            return Statement();
+            if (Match(TokenType.INT) || Match(TokenType.FLOAT) || Match(TokenType.BOOL))
+                if (Match(TokenType.LEFT_SQUAREBRACKET))
+                {
+                    Consume(TokenType.RIGHT_SQUAREBRACKET, "Expect ']' after '['.");
+                    return PeekNext().type is TokenType.LEFT_PAREN ? Function() : VariableDeclaration(true);
+                }
+                else
+                    return PeekNext().type is TokenType.LEFT_PAREN ? Function() : VariableDeclaration();
+            return Match(TokenType.VOID) ? Function() : Statement();
         }
         catch (ParseError)
         {
@@ -52,8 +56,12 @@ public class Parser
         }
     }
 
-    private Statement.FunctionStatement Function(Token name, SeeMMType returnType)
+    private Statement.FunctionStatement Function()
     {
+        var name = Consume(TokenType.IDENTIFIER, "Expect function name.");
+        
+        Consume(TokenType.LEFT_PAREN, "Expect '(' after function name.");
+        
         List<Token> parameters = new List<Token>();
         List<SeeMMType> parameterTypes = new List<SeeMMType>();
         if (!Check(TokenType.RIGHT_PAREN))
@@ -111,23 +119,17 @@ public class Parser
         Consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
         Consume(TokenType.LEFT_BRACE, "Expect '{' before function body.");
         List<Statement> body = Block();
-        return new Statement.FunctionStatement(name, parameters, body, parameterTypes, returnType);
+        return new Statement.FunctionStatement(name, parameters, body, parameterTypes, name.seeMMType);
     }
 
-    private Statement VariableDeclaration(SeeMMType type)
+    private Statement VariableDeclaration(bool isArray = false)
     {
-        if (Match(TokenType.LEFT_SQUAREBRACKET))
+        if (isArray)
         {
-            return ArrayDeclaration(type);
+            return ArrayDeclaration();
         }
 
         Token name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
-
-        //check if it's a function
-        if (Match(TokenType.LEFT_PAREN))
-        {
-            return Function(name , type);
-        }
 
         Expression initializer = null;
         if (Match(TokenType.EQUAL))
@@ -136,7 +138,7 @@ public class Parser
         }
 
         Consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
-        switch (type)
+        switch (name.seeMMType)
         {
             case SeeMMType.INT:
                 return new Statement.IntStatement(name, initializer);
@@ -149,24 +151,9 @@ public class Parser
         }
     }
 
-    private Statement ArrayDeclaration(SeeMMType type)
+    private Statement ArrayDeclaration()
     {
-        type = type switch
-        {
-            SeeMMType.INT => SeeMMType.INT_ARRAY,
-            SeeMMType.FLOAT => SeeMMType.FLOAT_ARRAY,
-            SeeMMType.BOOL => SeeMMType.BOOL_ARRAY,
-            _ => type
-        };
-
-        Consume(TokenType.RIGHT_SQUAREBRACKET, "Expect ']' after '['.");
         Token name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
-
-        //check if it's a function
-        if (Match(TokenType.LEFT_PAREN))
-        {
-            return Function(name ,type);
-        }
 
         List<Expression> initializer = new();
         if (Match(TokenType.EQUAL))
@@ -541,6 +528,16 @@ public class Parser
         return Peek().type == TokenType.EOF;
     }
 
+    private Token PeekNext()
+    {
+        if (tokens[current].type is TokenType.EOF)
+        {
+            throw Error(tokens[current], "Unexpected end of file.");
+        }
+
+        return tokens[current + 1];
+    }
+    
     private Token Peek()
     {
         return tokens[current];
