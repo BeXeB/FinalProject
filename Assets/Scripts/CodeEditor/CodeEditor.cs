@@ -197,10 +197,14 @@ public class CodeEditor : MonoBehaviour
     {
         var sb = new StringBuilder();
         var varType = useToken ? variable.seeMMType : extVariable.seeMMType;
-        sb.Append($"{varType.ToString().ToLower()}");
+        
         if (extVariable.isArray)
         {
-            sb.Append("[]");
+            sb.Append($"{varType.ToString().ToLower().Split("_")[0]}[]");
+        }
+        else
+        {
+            sb.Append($"{varType.ToString().ToLower()}");
         }
         var varName = useToken ? variable.textValue : extVariable.textValue;
         sb.Append($" {varName}: ");
